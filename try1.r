@@ -57,11 +57,11 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 "depositRateData_2000_08.txt","depositRateData_2003_08.txt","depositRateData_2006_08.txt","depositRateData_2009_08.txt","depositRateData_2012_08.txt","depositRateData_2015_08.txt")
 
 MSA = unique(Deposit_InstitutionDetails$MSA)
-for j in 1:length(MSA)
+for (j in 1:length(MSA))
 {
 
 temp = tbl_df(c())
-for i in 1:length(files.name.array)
+for (i in 1:length(files.name.array))
 {
       deposit.raw = read_delim(paste0("../",files.name.array[i], delim = "|")
       deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
