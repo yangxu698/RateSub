@@ -56,7 +56,21 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 "depositRateData_2000_07.txt","depositRateData_2003_07.txt","depositRateData_2006_07.txt","depositRateData_2009_07.txt","depositRateData_2012_07.txt","depositRateData_2015_07.txt",
 "depositRateData_2000_08.txt","depositRateData_2003_08.txt","depositRateData_2006_08.txt","depositRateData_2009_08.txt","depositRateData_2012_08.txt","depositRateData_2015_08.txt")
 
+MSA = distinct(Deposit_InstitutionDetails$MSA)
+for j in 1:length(MSA)
+{
 
-deposit.raw = read_delim("../depositRateData_1998_01.txt", delim = "|")
-deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
-summary(deposit.raw)
+temp = tbl_df(c())
+for i in 1:length(files.name.array)
+{
+      deposit.raw = read_delim(paste0("../",files.name.array[i], delim = "|")
+      deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
+      summary(deposit.raw)
+      deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
+      branch.in.MSA = Deposit_InstitutionDetails %>% filter( MSA = MSA[j]) %>% select(accountnumber)
+      temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA))
+
+}
+write_csv(temp, paste0(MSA[j],".csv"))
+rm(temp)
+}
