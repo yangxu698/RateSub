@@ -71,6 +71,6 @@ for i in 1:length(files.name.array)
       temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA))
 
 }
-write_csv(temp, paste0(MSA[j],".csv"))
+write_csv(temp, paste0("../ExportFile/", "MSA",MSA[j],".csv"))
 rm(temp)
 }
