@@ -286,8 +286,7 @@ The following objects are masked from ‘package:base’:
 + "depositRateData_2000_07.txt","depositRateData_2003_07.txt","depositRateData_2006_07.txt","depositRateData_2009_07.txt","depositRateData_2012_07.txt","depositRateData_2015_07.txt",
 + "depositRateData_2000_08.txt","depositRateData_2003_08.txt","depositRateData_2006_08.txt","depositRateData_2009_08.txt","depositRateData_2012_08.txt","depositRateData_2015_08.txt")
 > 
-> MSA = distinct(Deposit_InstitutionDetails$MSA)
-Error in UseMethod("distinct_") : 
-  no applicable method for 'distinct_' applied to an object of class "factor"
-Calls: distinct -> distinct.default -> distinct_
+> MSA = unique(Deposit_InstitutionDetails$MSA)
+> for j in 1:length(MSA)
+Error: unexpected symbol in "for j"
 Execution halted
