@@ -5,6 +5,6 @@
 #$ -q long ##*@@emichaellab 
 #$ -N RateWatch
 
-module load  R/3.5.1
+module load R
 
 R CMD BATCH try1.r 
