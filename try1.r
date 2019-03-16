@@ -63,7 +63,7 @@ for (j in 1:length(MSA))
 temp = tbl_df(c())
 for (i in 1:length(files.name.array))
 {
-      deposit.raw = read_delim(paste0("../",files.name.array[i], delim = "|")
+      deposit.raw = read_delim(paste0("../",files.name.array[i]), delim = "|")
       deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
       summary(deposit.raw)
       deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
