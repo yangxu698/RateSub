@@ -67,7 +67,7 @@ for (i in 1:length(files.name.array))
       deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
       summary(deposit.raw)
       deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
-      branch.in.MSA = Deposit_InstitutionDetails %>% filter( MSA == MSA[j]) %>% select(accountnumber)
+      branch.in.MSA = Deposit_InstitutionDetails %>% filter( MSA == MSA[j]) %>% select(ACCT_NBR)
       temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA))
 
 }
