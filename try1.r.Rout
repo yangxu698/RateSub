@@ -293,9 +293,29 @@ The following objects are masked from ‘package:base’:
 + temp = tbl_df(c())
 + for (i in 1:length(files.name.array))
 + {
-+       deposit.raw = read_delim(paste0("../",files.name.array[i], delim = "|")
++       deposit.raw = read_delim(paste0("../",files.name.array[i]), delim = "|")
 +       deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
-Error: unexpected symbol in:
-"      deposit.raw = read_delim(paste0("../",files.name.array[i], delim = "|")
-      deposit.raw"
++       summary(deposit.raw)
++       deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
++       branch.in.MSA = Deposit_InstitutionDetails %>% filter( MSA = MSA[j]) %>% select(accountnumber)
++       temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA))
++ 
++ }
++ write_csv(temp, paste0("../ExportFile/", "MSA",MSA[j],".csv"))
++ rm(temp)
++ }
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  producttype = col_logical(),
+  tierminimum = col_double(),
+  tiermaximum = col_double(),
+  termlength = col_double(),
+  termfrequency = col_logical(),
+  rate = col_double(),
+  apy = col_double(),
+  surveydate = col_date(format = "")
+)
+Error: `MSA` (`MSA = MSA[j]`) must not be named, do you need `==`?
 Execution halted
