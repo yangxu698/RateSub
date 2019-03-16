@@ -297,7 +297,7 @@ The following objects are masked from ‘package:base’:
 +       deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
 +       summary(deposit.raw)
 +       deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
-+       branch.in.MSA = Deposit_InstitutionDetails %>% filter( MSA = MSA[j]) %>% select(accountnumber)
++       branch.in.MSA = Deposit_InstitutionDetails %>% filter( MSA == MSA[j]) %>% select(accountnumber)
 +       temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA))
 + 
 + }
@@ -317,5 +317,6 @@ cols(
   apy = col_double(),
   surveydate = col_date(format = "")
 )
-Error: `MSA` (`MSA = MSA[j]`) must not be named, do you need `==`?
+Error in .f(.x[[i]], ...) : object 'accountnumber' not found
+Calls: %>% ... <Anonymous> -> vars_select_eval -> map_if -> map -> .f
 Execution halted
