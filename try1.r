@@ -7,10 +7,10 @@ DepositCertChgHist = read_delim("../DepositCertChgHist.txt", delim = "|")
 Deposit_InstitutionDetails = read_delim("../Deposit_InstitutionDetails.txt", delim = "|")
 
 library(dplyr)
-DepNameChgHis = DepNameChgHis %>% mutate_if(is.character, as.factor)
-Deposit_acct_join  = Deposit_acct_join %>% mutate_if(is.character, as.factor)
-DepositCertChgHist = DepositCertChgHist %>% mutate_if(is.character, as.factor)
-Deposit_InstitutionDetails = Deposit_InstitutionDetails %>% mutate_if(is.character, as.factor)
+## DepNameChgHis = DepNameChgHis %>% mutate_if(is.character, as.factor)
+## Deposit_acct_join  = Deposit_acct_join %>% mutate_if(is.character, as.factor)
+## DepositCertChgHist = DepositCertChgHist %>% mutate_if(is.character, as.factor)
+## Deposit_InstitutionDetails = Deposit_InstitutionDetails %>% mutate_if(is.character, as.factor)
 
 summary(DepNameChgHis)
 summary(Deposit_acct_join)
@@ -64,10 +64,10 @@ temp = tbl_df(c())
 for (i in 1:length(files.name.array))
 {
       deposit.raw = read_delim(paste0("../",files.name.array[i]), delim = "|")
-      deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
+      ## deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
       summary(deposit.raw)
       deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
-      branch.in.MSA = Deposit_InstitutionDetails %>% filter( MSA == MSA[j]) %>% select(ACCT_NBR)
+      branch.in.MSA = unlist(Deposit_InstitutionDetails %>% filter( MSA == MSA[j]) %>% select(ACCT_NBR))
       temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA))
 
 }
