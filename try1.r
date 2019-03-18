@@ -68,7 +68,7 @@ for (i in 1:length(files.name.array))
       summary(deposit.raw)
       deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
       branch.in.MSA = unlist(Deposit_InstitutionDetails %>% filter( MSA == MSA[j]) %>% select(ACCT_NBR))
-      temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA))
+      temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA)) %>% select(accountnumber, productcode, rate, surveydate)
 
 }
 write_csv(temp, paste0("../ExportFile/", "MSA",MSA[j],".csv"))
