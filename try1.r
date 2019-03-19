@@ -57,20 +57,30 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 "depositRateData_2000_08.txt","depositRateData_2003_08.txt","depositRateData_2006_08.txt","depositRateData_2009_08.txt","depositRateData_2012_08.txt","depositRateData_2015_08.txt")
 
 MSA = unique(Deposit_InstitutionDetails$MSA)
-for (j in 1:length(MSA))
-{
 
-temp = tbl_df(c())
-for (i in 1:length(files.name.array))
-{
-      deposit.raw = read_delim(paste0("../",files.name.array[i]), delim = "|")
-      ## deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
-      summary(deposit.raw)
-      deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
-      branch.in.MSA = unlist(Deposit_InstitutionDetails %>% filter( MSA == MSA[j]) %>% select(ACCT_NBR))
-      temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA)) %>% select(accountnumber, productcode, rate, surveydate)
 
-}
-write_csv(temp, paste0("../ExportFile/", "MSA",MSA[j],".csv"))
-rm(temp)
-}
+library(foreach)
+library(doParallel)
+library(iterators)
+cores_number = 2
+registerDoParallel(cores_number)
+itx = iter(MSA)
+foreach( j = itx ) %dopar%
+## for (j in 1:length(MSA))
+    {
+
+    temp = tbl_df(c())
+    for (i in 1:length(files.name.array))
+      {
+            deposit.raw = read_delim(paste0("../",files.name.array[i]), delim = "|")
+            ## deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
+            summary(deposit.raw)
+            deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
+            branch.in.MSA = unlist(Deposit_InstitutionDetails %>% filter( MSA == MSA[j]) %>% select(ACCT_NBR))
+            temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA)) %>% select(accountnumber, productcode, rate, surveydate)
+
+      }
+    write_csv(temp, paste0("../ExportFile/", "MSA",MSA[j],".csv"))
+    rm(temp)
+    }
+stopImplicitCluster()
