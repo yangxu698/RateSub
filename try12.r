@@ -76,11 +76,11 @@ foreach( j = itx ) %dopar%
             ## deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
             summary(deposit.raw)
             deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
-            branch.in.MSA = unlist(Deposit_InstitutionDetails %>% filter( MSA == MSA[j]) %>% select(ACCT_NBR))
+            branch.in.MSA = unlist(Deposit_InstitutionDetails %>% filter( MSA == j) %>% select(ACCT_NBR))
             temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA)) %>% select(accountnumber, productcode, rate, surveydate)
 
       }
-    write_csv(temp, paste0("../ExportFile12Core/", "MSA",MSA[j],".csv"))
+    write_csv(temp, paste0("../ExportFile12Core/", "MSA", j ,".csv"))
     rm(temp)
     }
 stopImplicitCluster()
