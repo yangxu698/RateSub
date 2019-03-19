@@ -77,7 +77,7 @@ foreach( j = itx ) %dopar%
             summary(deposit.raw)
             deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
             branch.in.MSA = unlist(Deposit_InstitutionDetails %>% filter( MSA == j) %>% select(ACCT_NBR))
-            temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA)) %>% select(accountnumber, productcode, rate, surveydate)
+            temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA) %>% select(accountnumber, productcode, rate, surveydate))
 
       }
     write_csv(temp, paste0("../ExportFile12Core/", "MSA", j ,".csv"))
