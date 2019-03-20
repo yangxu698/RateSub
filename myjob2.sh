@@ -7,4 +7,4 @@
 
 module load R
 
-R CMD BATCH try12.r
+R CMD BATCH try24.r
