@@ -1,9 +1,9 @@
 
 ## setwd("~/RateWatch/UnzippedData")
 library(readr)
-DepNameChgHis = read_delim("../DepNameChgHis.txt", delim = "|")
-Deposit_acct_join = read_delim("../Deposit_acct_join.txt", delim = "|")
-DepositCertChgHist = read_delim("../DepositCertChgHist.txt", delim = "|")
+## DepNameChgHis = read_delim("../DepNameChgHis.txt", delim = "|")
+## Deposit_acct_join = read_delim("../Deposit_acct_join.txt", delim = "|")
+## DepositCertChgHist = read_delim("../DepositCertChgHist.txt", delim = "|")
 Deposit_InstitutionDetails = read_delim("../Deposit_InstitutionDetails.txt", delim = "|")
 
 library(dplyr)
@@ -12,9 +12,9 @@ library(dplyr)
 ## DepositCertChgHist = DepositCertChgHist %>% mutate_if(is.character, as.factor)
 ## Deposit_InstitutionDetails = Deposit_InstitutionDetails %>% mutate_if(is.character, as.factor)
 
-summary(DepNameChgHis)
-summary(Deposit_acct_join)
-summary(DepositCertChgHist)
+## summary(DepNameChgHis)
+## summary(Deposit_acct_join)
+## summary(DepositCertChgHist)
 summary(Deposit_InstitutionDetails)
 
 rates.array = c("06MCD10K", "12MCD10K", "60MCD10K", "INTCK0K", "INTCK2.5K", "FIXIRA0K", "VARIRA0K", "SAVE2.5K", "MM10K", "MM25K")
@@ -56,31 +56,36 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 "depositRateData_2000_07.txt","depositRateData_2003_07.txt","depositRateData_2006_07.txt","depositRateData_2009_07.txt","depositRateData_2012_07.txt","depositRateData_2015_07.txt",
 "depositRateData_2000_08.txt","depositRateData_2003_08.txt","depositRateData_2006_08.txt","depositRateData_2009_08.txt","depositRateData_2012_08.txt","depositRateData_2015_08.txt")
 
-MSA = unique(Deposit_InstitutionDetails$MSA)
-
+CBSA = unique(Deposit_InstitutionDetails$CBSA)
 
 library(foreach)
 library(doParallel)
 library(iterators)
-cores_number = 2
+cores_number = 12
+timestamp = tbl_df(c())
+
 registerDoParallel(cores_number)
-itx = iter(MSA)
+itx = iter(CBSA)
 foreach( j = itx ) %dopar%
-## for (j in 1:length(MSA))
+## for (j in 1:length(CBSA))
     {
 
     temp = tbl_df(c())
+    start_time = Sys.time()
     for (i in 1:length(files.name.array))
       {
             deposit.raw = read_delim(paste0("../",files.name.array[i]), delim = "|")
             ## deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
-            summary(deposit.raw)
+            ## summary(deposit.raw)
             deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
-            branch.in.MSA = unlist(Deposit_InstitutionDetails %>% filter( MSA == j) %>% select(ACCT_NBR))
-            temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA) %>% select(accountnumber, productcode, rate, surveydate) )
+            branch.in.CBSA = unlist(Deposit_InstitutionDetails %>% filter( CBSA == j) %>% select(ACCT_NBR))
+            temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.CBSA) %>% select(accountnumber, productcode, rate, surveydate))
 
       }
-    write_csv(temp, paste0("../ExportFile/", "MSA", j ,".csv"))
+    timestamp = rbind( timestamp, c(j,start_time, Sys.time()))
+    write_csv(temp, paste0("../ExportFile/", "CBSA", j ,".csv"))
     rm(temp)
     }
+colnames(timestamp) = c("CBSA", "start_time", "end_time")
+write_csv(timestamp, paste0("../ExportFile/", "timestamp",".csv"))
 stopImplicitCluster()
