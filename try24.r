@@ -1,9 +1,9 @@
 
 ## setwd("~/RateWatch/UnzippedData")
 library(readr)
-DepNameChgHis = read_delim("../DepNameChgHis.txt", delim = "|")
-Deposit_acct_join = read_delim("../Deposit_acct_join.txt", delim = "|")
-DepositCertChgHist = read_delim("../DepositCertChgHist.txt", delim = "|")
+## DepNameChgHis = read_delim("../DepNameChgHis.txt", delim = "|")
+## Deposit_acct_join = read_delim("../Deposit_acct_join.txt", delim = "|")
+## DepositCertChgHist = read_delim("../DepositCertChgHist.txt", delim = "|")
 Deposit_InstitutionDetails = read_delim("../Deposit_InstitutionDetails.txt", delim = "|")
 
 library(dplyr)
@@ -12,9 +12,9 @@ library(dplyr)
 ## DepositCertChgHist = DepositCertChgHist %>% mutate_if(is.character, as.factor)
 ## Deposit_InstitutionDetails = Deposit_InstitutionDetails %>% mutate_if(is.character, as.factor)
 
-summary(DepNameChgHis)
-summary(Deposit_acct_join)
-summary(DepositCertChgHist)
+## summary(DepNameChgHis)
+## summary(Deposit_acct_join)
+## summary(DepositCertChgHist)
 summary(Deposit_InstitutionDetails)
 
 rates.array = c("06MCD10K", "12MCD10K", "60MCD10K", "INTCK0K", "INTCK2.5K", "FIXIRA0K", "VARIRA0K", "SAVE2.5K", "MM10K", "MM25K")
@@ -62,7 +62,10 @@ MSA = unique(Deposit_InstitutionDetails$MSA)
 library(foreach)
 library(doParallel)
 library(iterators)
-cores_number = 12
+cores_number = 24
+
+timestamp = tbl_df(c())
+
 registerDoParallel(cores_number)
 itx = iter(MSA)
 foreach( j = itx ) %dopar%
@@ -70,6 +73,7 @@ foreach( j = itx ) %dopar%
     {
 
     temp = tbl_df(c())
+    start_time = Sys.time()
     for (i in 1:length(files.name.array))
       {
             deposit.raw = read_delim(paste0("../",files.name.array[i]), delim = "|")
@@ -80,7 +84,10 @@ foreach( j = itx ) %dopar%
             temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA) %>% select(accountnumber, productcode, rate, surveydate))
 
       }
+    timestamp = rbind( timestamp, c(j,start_time, Sys.time()))
     write_csv(temp, paste0("../ExportFile12Core/", "MSA", j ,".csv"))
     rm(temp)
     }
+colnames(timestamp) = c("MSA", "start_time", "end_time")
+write_csv(timestamp, paste0("../ExportFile12Core/", "timestamp",".csv"))
 stopImplicitCluster()
