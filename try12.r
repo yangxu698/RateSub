@@ -56,36 +56,26 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 "depositRateData_2000_07.txt","depositRateData_2003_07.txt","depositRateData_2006_07.txt","depositRateData_2009_07.txt","depositRateData_2012_07.txt","depositRateData_2015_07.txt",
 "depositRateData_2000_08.txt","depositRateData_2003_08.txt","depositRateData_2006_08.txt","depositRateData_2009_08.txt","depositRateData_2012_08.txt","depositRateData_2015_08.txt")
 
+files.name.array = sort(files.name.array)
 CBSA = unique(Deposit_InstitutionDetails$CBSA)
+set.seed(2019)
+CBSA = sample(CBSA, 100)
 
 library(foreach)
 library(doParallel)
 library(iterators)
-cores_number = 12
-timestamp = tbl_df(c())
+cores_number = 2
+## timestamp = tbl_df(c())
+source("CSBA_Subset.r")
 
 registerDoParallel(cores_number)
-itx = iter(CBSA)
-foreach( j = itx ) %dopar%
+itx = iter(CBSA[1:2])
+timestamp = foreach( j = itx ) %dopar%
 ## for (j in 1:length(CBSA))
     {
+      CBSA_subset(j)
 
-    temp = tbl_df(c())
-    start_time = Sys.time()
-    for (i in 1:length(files.name.array))
-      {
-            deposit.raw = read_delim(paste0("../",files.name.array[i]), delim = "|")
-            ## deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
-            ## summary(deposit.raw)
-            deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
-            branch.in.CBSA = unlist(Deposit_InstitutionDetails %>% filter( CBSA == j) %>% select(ACCT_NBR))
-            temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.CBSA) %>% select(accountnumber, productcode, rate, surveydate))
-
-      }
-    timestamp = rbind( timestamp, c(j,start_time, Sys.time()))
-    write_csv(temp, paste0("../ExportFile/", "CBSA", j ,".csv"))
-    rm(temp)
     }
-colnames(timestamp) = c("CBSA", "start_time", "end_time")
-write_csv(timestamp, paste0("../ExportFile/", "timestamp",".csv"))
+colnames(timestamp) = c("CBSA", "start_time", "end_time", files.name.array[1:2])
+write_csv(timestamp, paste0("../CBSA/", "timestamp",".csv"))
 stopImplicitCluster()
