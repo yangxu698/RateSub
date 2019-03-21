@@ -19,5 +19,5 @@ MSA_subset = function(j)
   timestamp_MSA = c(j,start_time, Sys.time(), MSA_count)
   write_csv(temp, paste0("../E12core/", "MSA", j ,".csv"))
     ## rm(temp)
-  return(list(timestamp_MSA, MSA_count))
+  return(timestamp_MSA)
 }
