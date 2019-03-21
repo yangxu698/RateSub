@@ -69,8 +69,8 @@ cores_number = 2
 source("CBSA_Subset.r")
 
 registerDoParallel(cores_number)
-itx = iter(CBSA[1:4])
-timestamp = foreach( j = itx, .combine = 'rbind' ) %dopar%
+itx = iter(CBSA[1:2])
+timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
 ## for (j in 1:length(CBSA))
     {
       CBSA_subset(j)

@@ -15,7 +15,7 @@ CBSA_subset = function(j)
           CBSA_count = c(CBSA_count, nrow(temp)-nrow_temp)
 
     }
-  timestamp = c(j,as.character(start_time), as.character(Sys.time()), CBSA_count)
+  timestamp_CBSA = c(j,as.character(start_time), as.character(Sys.time()), CBSA_count)
   write_csv(temp, paste0("../CBSA/", "CBSA", j ,".csv"))
-  rm(temp)
+  return(timestamp_CBSA)
 }
