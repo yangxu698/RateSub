@@ -64,19 +64,19 @@ CBSA = sample(CBSA, 100)
 library(foreach)
 library(doParallel)
 library(iterators)
-cores_number = 2
+cores_number = 12
 ## timestamp = tbl_df(c())
 source("CBSA_Subset.r")
 
 registerDoParallel(cores_number)
-itx = iter(CBSA[1:2])
+itx = iter(CBSA)
 timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
 ## for (j in 1:length(CBSA))
     {
       CBSA_subset(j)
 
     }
-colnames(timestamp) = c("CBSA", "start_time", "end_time", files.name.array[1:2])
+colnames(timestamp) = c("CBSA", "start_time", "end_time", files.name.array)
 timestamp = tbl_df(timestamp)
 write_csv(timestamp, paste0("../CBSA/", "timestamp",".csv"))
 stopImplicitCluster()
