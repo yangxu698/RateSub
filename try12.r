@@ -66,7 +66,7 @@ library(doParallel)
 library(iterators)
 cores_number = 2
 ## timestamp = tbl_df(c())
-source("CSBA_Subset.r")
+source("CBSA_Subset.r")
 
 registerDoParallel(cores_number)
 itx = iter(CBSA[1:2])
