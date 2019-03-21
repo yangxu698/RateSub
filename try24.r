@@ -76,5 +76,5 @@ timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
 
               }
 ##colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array[1:2])
-write_csv(timestamp, paste0("../ExportFile12Core/", "timestamp",".csv"))
+write_csv(timestamp, paste0("../E12core/", "timestamp",".csv"))
 stopImplicitCluster()
