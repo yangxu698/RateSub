@@ -65,7 +65,7 @@ library(iterators)
 source("MSA_Subset.r")
 cores_number = 2
 
-timestamp = tbl_df(c())
+## timestamp = tbl_df(c())
 
 registerDoParallel(cores_number)
 itx = iter(MSA[1:2])
@@ -76,5 +76,5 @@ timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
 
               }
 ##colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array[1:2])
-write_csv(timestamp, paste0("../E12core/", "timestamp",".csv"))
+write_csv(tbl_df(timestamp), paste0("../E12core/", "timestamp",".csv"))
 stopImplicitCluster()
