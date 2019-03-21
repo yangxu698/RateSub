@@ -245,9 +245,7 @@ cols(
   apy = col_double(),
   surveydate = col_date(format = "")
 )
-> ##colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array[1:2])
-> write_csv(tbl_df(timestamp), paste0("../E12core/", "timestamp",".csv"))
-Error in is.data.frame(x) : Columns 1, 2, 3, 4, 5 must be named.
+> timestamp = tbl_df(timestamp)
+Error: Columns 1, 2, 3, 4, 5 must be named.
 Use .name_repair to specify repair.
-Calls: write_csv ... tryCatch -> tryCatchList -> tryCatchOne -> <Anonymous>
 Execution halted
