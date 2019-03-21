@@ -181,8 +181,72 @@ Loading required package: iterators
 Loading required package: parallel
 > library(iterators)
 > source("MSA_Subset.r")
-Error in source("MSA_Subset.r") : MSA_Subset.r:16:59: unexpected ')'
-15:             temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA) %>% select(accountnumber, productcode, rate, surveydate))
-16:             MSA_count = c(MSA_count, ncol(temp)-ncol_temp))
-                                                              ^
+> cores_number = 2
+> 
+> timestamp = tbl_df(c())
+> 
+> registerDoParallel(cores_number)
+> itx = iter(MSA[1:2])
+> timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
++ ## for (j in 1:length(MSA))
++               {
++                 MSA_subset(j)
++ 
++               }
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  producttype = col_logical(),
+  tierminimum = col_double(),
+  tiermaximum = col_double(),
+  termlength = col_double(),
+  termfrequency = col_logical(),
+  rate = col_double(),
+  apy = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  producttype = col_logical(),
+  tierminimum = col_double(),
+  tiermaximum = col_double(),
+  termlength = col_double(),
+  termfrequency = col_logical(),
+  rate = col_double(),
+  apy = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  producttype = col_logical(),
+  tierminimum = col_double(),
+  tiermaximum = col_double(),
+  termlength = col_double(),
+  termfrequency = col_logical(),
+  rate = col_double(),
+  apy = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  producttype = col_logical(),
+  tierminimum = col_double(),
+  tiermaximum = col_double(),
+  termlength = col_double(),
+  termfrequency = col_logical(),
+  rate = col_double(),
+  apy = col_double(),
+  surveydate = col_date(format = "")
+)
+> colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array)
+Error in dimnames(x) <- dn : 
+  length of 'dimnames' [2] not equal to array extent
+Calls: colnames<-
 Execution halted
