@@ -13,7 +13,7 @@ MSA_subset = function(j)
             branch.in.MSA = unlist(Deposit_InstitutionDetails %>% filter( MSA == j) %>% select(ACCT_NBR))
             ncol_temp = ncol(temp)
             temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA) %>% select(accountnumber, productcode, rate, surveydate))
-            MSA_count = c(MSA_count, ncol(temp)-ncol_temp))
+            MSA_count = c(MSA_count, ncol(temp)-ncol_temp)
 
       }
   timestamp_MSA = c(j,start_time, Sys.time(), MSA_count)
