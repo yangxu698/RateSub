@@ -246,7 +246,7 @@ cols(
   surveydate = col_date(format = "")
 )
 > ##colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array[1:2])
-> write_csv(timestamp, paste0("../ExportFile12Core/", "timestamp",".csv"))
+> write_csv(timestamp, paste0("../E12core/", "timestamp",".csv"))
 Error in write_delim(x, path, delim = ",", na = na, append = append, col_names = col_names,  : 
   is.data.frame(x) is not TRUE
 Calls: write_csv -> write_delim -> stopifnot
