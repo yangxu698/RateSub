@@ -183,7 +183,7 @@ Loading required package: parallel
 > source("MSA_Subset.r")
 > cores_number = 2
 > 
-> timestamp = tbl_df(c())
+> ## timestamp = tbl_df(c())
 > 
 > registerDoParallel(cores_number)
 > itx = iter(MSA[1:2])
@@ -246,8 +246,8 @@ cols(
   surveydate = col_date(format = "")
 )
 > ##colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array[1:2])
-> write_csv(timestamp, paste0("../E12core/", "timestamp",".csv"))
-Error in write_delim(x, path, delim = ",", na = na, append = append, col_names = col_names,  : 
-  is.data.frame(x) is not TRUE
-Calls: write_csv -> write_delim -> stopifnot
+> write_csv(tbl_df(timestamp), paste0("../E12core/", "timestamp",".csv"))
+Error in is.data.frame(x) : Columns 1, 2, 3, 4, 5 must be named.
+Use .name_repair to specify repair.
+Calls: write_csv ... tryCatch -> tryCatchList -> tryCatchOne -> <Anonymous>
 Execution halted
