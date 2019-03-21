@@ -4,7 +4,7 @@ MSA_subset = function(j)
   temp = tbl_df(c())
   MSA_count = c()
   start_time = Sys.time()
-  for (i in 1:2) ##length(files.name.array))
+  for (i in 1:length(files.name.array))
       {
             deposit.raw = read_delim(paste0("../",files.name.array[i]), delim = "|")
             ## deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
