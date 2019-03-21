@@ -245,7 +245,7 @@ cols(
   apy = col_double(),
   surveydate = col_date(format = "")
 )
-> colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array)
+> colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array[1:2])
 Error in dimnames(x) <- dn : 
   length of 'dimnames' [2] not equal to array extent
 Calls: colnames<-
