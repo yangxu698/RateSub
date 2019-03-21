@@ -69,7 +69,7 @@ cores_number = 2
 source("CBSA_Subset.r")
 
 registerDoParallel(cores_number)
-itx = iter(CBSA[1:2])
+itx = iter(CBSA[1:4])
 timestamp = foreach( j = itx ) %dopar%
 ## for (j in 1:length(CBSA))
     {
@@ -77,5 +77,6 @@ timestamp = foreach( j = itx ) %dopar%
 
     }
 colnames(timestamp) = c("CBSA", "start_time", "end_time", files.name.array[1:2])
+timestamp = tbl_df(timestamp)
 write_csv(timestamp, paste0("../CBSA/", "timestamp",".csv"))
 stopImplicitCluster()
