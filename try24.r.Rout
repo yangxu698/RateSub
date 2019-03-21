@@ -245,7 +245,11 @@ cols(
   apy = col_double(),
   surveydate = col_date(format = "")
 )
+> colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array[1:2])
 > timestamp = tbl_df(timestamp)
-Error: Columns 1, 2, 3, 4, 5 must be named.
-Use .name_repair to specify repair.
-Execution halted
+> write_csv(timestamp, paste0("../E12core/", "timestamp",".csv"))
+> stopImplicitCluster()
+> 
+> proc.time()
+   user  system elapsed 
+ 16.838   1.565  13.735 
