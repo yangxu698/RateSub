@@ -62,32 +62,19 @@ MSA = unique(Deposit_InstitutionDetails$MSA)
 library(foreach)
 library(doParallel)
 library(iterators)
-cores_number = 24
+source("MSA_Subset.r")
+cores_number = 2
 
 timestamp = tbl_df(c())
 
 registerDoParallel(cores_number)
-itx = iter(MSA)
-foreach( j = itx ) %dopar%
+itx = iter(MSA[1:2])
+timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
 ## for (j in 1:length(MSA))
-    {
+              {
+                MSA_subset(j)
 
-    temp = tbl_df(c())
-    start_time = Sys.time()
-    for (i in 1:length(files.name.array))
-      {
-            deposit.raw = read_delim(paste0("../",files.name.array[i]), delim = "|")
-            ## deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
-            summary(deposit.raw)
-            deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
-            branch.in.MSA = unlist(Deposit_InstitutionDetails %>% filter( MSA == j) %>% select(ACCT_NBR))
-            temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.MSA) %>% select(accountnumber, productcode, rate, surveydate))
-
-      }
-    timestamp = rbind( timestamp, c(j,start_time, Sys.time()))
-    write_csv(temp, paste0("../ExportFile12Core/", "MSA", j ,".csv"))
-    rm(temp)
-    }
-colnames(timestamp) = c("MSA", "start_time", "end_time")
+              }
+colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array)
 write_csv(timestamp, paste0("../ExportFile12Core/", "timestamp",".csv"))
 stopImplicitCluster()
