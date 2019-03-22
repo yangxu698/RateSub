@@ -87,7 +87,7 @@ itx$length
 timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
 ## for (j in 1:length(CBSA))
     {
-      CBSA_subset(j)
+      smarket_subset(j)
     }
 colnames(timestamp) = c("CBSA", "start_time", "end_time", files.name.array)
 timestamp = tbl_df(timestamp)
