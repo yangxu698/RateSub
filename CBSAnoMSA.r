@@ -57,11 +57,13 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 "depositRateData_2000_08.txt","depositRateData_2003_08.txt","depositRateData_2006_08.txt","depositRateData_2009_08.txt","depositRateData_2012_08.txt","depositRateData_2015_08.txt")
 
 files.name.array = sort(files.name.array)
-CBSA = as.array(unique(Deposit_InstitutionDetails$CBSA))
-length(CBSA)
-set.seed(2019)
-CBSA = sample(CBSA, 200)
-length(CBSA)
+CBSA = Deposit_InstitutionDetails %>% filter( is.na(MSA) & !is.na(CBSA) ) %>%
+        select(CBSA) %>% unique() %>% pull(CBSA)
+CBSAcommon = Deposit_InstitutionDetails %>% filter( !is.na(MSA) & !is.na(CBSA) ) %>%
+        select(CBSA) %>% unique() %>% pull(CBSA)
+CBSA = setdiff(CBSA, CBSAcommon)
+## set.seed(2019)
+## CBSA = sample(CBSA, 200)
 
 library(foreach)
 library(doParallel)

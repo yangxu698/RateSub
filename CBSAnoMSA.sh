@@ -3,8 +3,8 @@
 #$ -m abe
 #$ -pe smp 12
 #$ -q long ##*@@emichaellab
-#$ -N CBSA
+#$ -N CBSAnoMSA
 
 module load R
 
-R CMD BATCH CBSA.r
+R CMD BATCH CBSAnoMSA.r
