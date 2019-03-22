@@ -62,7 +62,7 @@ smarket_code = Deposit_InstitutionDetails %>% filter( is.na(MSA) & is.na(CBSA) )
         arrange(StateCounty) %>% select(ACCT_NBR, StateCounty)
 smarket = list(smarket_code[1:1381,],smarket_code[1382:2744,],smarket_code[2745:4113,],
                 smarket_code[4114:5487,],smarket_code[5488:6853,],smarket_code[6854:8236,],
-                smarket_code[8237:9604,],smarket_code[9605:1372,])
+                smarket_code[8237:9604,],smarket_code[9605:10372,])
 
 smarket_code[1381:1382,]
 smarket_code[2744:2745,]
