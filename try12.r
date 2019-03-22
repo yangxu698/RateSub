@@ -59,7 +59,7 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 files.name.array = sort(files.name.array)
 CBSA = unique(Deposit_InstitutionDetails$CBSA)
 set.seed(2019)
-CBSA = sample(CBSA, 100)
+CBSA = sample(CBSA, 200)
 
 library(foreach)
 library(doParallel)
