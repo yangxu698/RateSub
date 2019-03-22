@@ -7,4 +7,4 @@
 
 module load R
 
-R CMD BATCH try24.r
+R CMD BATCH MSA.r

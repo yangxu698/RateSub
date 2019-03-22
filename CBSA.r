@@ -57,7 +57,7 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 "depositRateData_2000_08.txt","depositRateData_2003_08.txt","depositRateData_2006_08.txt","depositRateData_2009_08.txt","depositRateData_2012_08.txt","depositRateData_2015_08.txt")
 
 files.name.array = sort(files.name.array)
-CBSA = unique(Deposit_InstitutionDetails$CBSA)
+CBSA = as.array(unique(Deposit_InstitutionDetails$CBSA))
 length(CBSA)
 set.seed(2019)
 CBSA = sample(CBSA, 200)
@@ -66,20 +66,19 @@ length(CBSA)
 library(foreach)
 library(doParallel)
 library(iterators)
-cores_number = 12
+cores_number = 24
 ## timestamp = tbl_df(c())
 source("CBSA_Subset.r")
 
 registerDoParallel(cores_number)
 itx = iter(CBSA)
 itx$length
-## timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
-## ## for (j in 1:length(CBSA))
-##     {
-##       CBSA_subset(j)
-##
-##     }
-## colnames(timestamp) = c("CBSA", "start_time", "end_time", files.name.array)
-## timestamp = tbl_df(timestamp)
-## write_csv(timestamp, paste0("../CBSA/", "timestamp",".csv"))
-## stopImplicitCluster()
+timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
+## for (j in 1:length(CBSA))
+    {
+      CBSA_subset(j)
+    }
+colnames(timestamp) = c("CBSA", "start_time", "end_time", files.name.array)
+timestamp = tbl_df(timestamp)
+write_csv(timestamp, paste0("../CBSA/", "timestamp",".csv"))
+stopImplicitCluster()
