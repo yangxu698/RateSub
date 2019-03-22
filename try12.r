@@ -58,8 +58,10 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 
 files.name.array = sort(files.name.array)
 CBSA = unique(Deposit_InstitutionDetails$CBSA)
+length(CBSA)
 set.seed(2019)
 CBSA = sample(CBSA, 200)
+length(CBSA)
 
 library(foreach)
 library(doParallel)
@@ -70,13 +72,14 @@ source("CBSA_Subset.r")
 
 registerDoParallel(cores_number)
 itx = iter(CBSA)
-timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
-## for (j in 1:length(CBSA))
-    {
-      CBSA_subset(j)
-
-    }
-colnames(timestamp) = c("CBSA", "start_time", "end_time", files.name.array)
-timestamp = tbl_df(timestamp)
-write_csv(timestamp, paste0("../CBSA/", "timestamp",".csv"))
-stopImplicitCluster()
+itx$length
+## timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
+## ## for (j in 1:length(CBSA))
+##     {
+##       CBSA_subset(j)
+##
+##     }
+## colnames(timestamp) = c("CBSA", "start_time", "end_time", files.name.array)
+## timestamp = tbl_df(timestamp)
+## write_csv(timestamp, paste0("../CBSA/", "timestamp",".csv"))
+## stopImplicitCluster()

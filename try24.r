@@ -57,6 +57,7 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 "depositRateData_2000_08.txt","depositRateData_2003_08.txt","depositRateData_2006_08.txt","depositRateData_2009_08.txt","depositRateData_2012_08.txt","depositRateData_2015_08.txt")
 files.name.array = sort(files.name.array)
 MSA = unique(Deposit_InstitutionDetails$MSA)
+length(MSA)
 
 
 library(foreach)
@@ -69,13 +70,14 @@ cores_number = 24
 
 registerDoParallel(cores_number)
 itx = iter(MSA)
-timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
-## for (j in 1:length(MSA))
-              {
-                MSA_subset(j)
-
-              }
-colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array)
-timestamp = tbl_df(timestamp)
-write_csv(timestamp, paste0("../E12core/", "timestamp",".csv"))
-stopImplicitCluster()
+itx$length
+## timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
+## ## for (j in 1:length(MSA))
+##               {
+##                 MSA_subset(j)
+##
+##               }
+## colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array)
+## timestamp = tbl_df(timestamp)
+## write_csv(timestamp, paste0("../E12core/", "timestamp",".csv"))
+## stopImplicitCluster()
