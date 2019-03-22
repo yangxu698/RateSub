@@ -77,19 +77,19 @@ smarket_code[9604:9605,]
 library(foreach)
 library(doParallel)
 library(iterators)
-cores_number = 8
+cores_number = 2
 ## timestamp = tbl_df(c())
 source("smarket_Subset.r")
 
 registerDoParallel(cores_number)
-itx = iter(CBSA)
+itx = iter(smarket)
 itx$length
 timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
 ## for (j in 1:length(CBSA))
     {
       smarket_subset(j)
     }
-colnames(timestamp) = c("CBSA", "start_time", "end_time", files.name.array)
+colnames(timestamp) = c("small_market", "start_time", "end_time", files.name.array[1:2])
 timestamp = tbl_df(timestamp)
 write_csv(timestamp, paste0("../smarket/", "timestamp",".csv"))
 stopImplicitCluster()
