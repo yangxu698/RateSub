@@ -64,13 +64,13 @@ smarket = list(smarket_code[1:1381,],smarket_code[1382:2744,],smarket_code[2745:
                 smarket_code[4114:5487,],smarket_code[5488:6853,],smarket_code[6854:8236,],
                 smarket_code[8237:9604,],smarket_code[9605:10372,])
 
-smarket_code[1381:1382,]
-smarket_code[2744:2745,]
-smarket_code[4113:4114,]
-smarket_code[5487:5488,]
-smarket_code[6853:6854,]
-smarket_code[8236:8237,]
-smarket_code[9604:9605,]
+## smarket_code[1381:1382,]
+## smarket_code[2744:2745,]
+## smarket_code[4113:4114,]
+## smarket_code[5487:5488,]
+## smarket_code[6853:6854,]
+## smarket_code[8236:8237,]
+## smarket_code[9604:9605,]
 ## set.seed(2019)
 ## CBSA = sample(CBSA, 200)
 
