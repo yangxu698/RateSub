@@ -66,7 +66,7 @@ length(CBSA)
 library(foreach)
 library(doParallel)
 library(iterators)
-cores_number = 12
+cores_number = 4
 ## timestamp = tbl_df(c())
 source("CBSA_Subset.r")
 
