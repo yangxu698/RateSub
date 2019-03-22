@@ -16,6 +16,6 @@ CBSA_subset = function(j)
 
     }
   timestamp_CBSA = c(j,as.character(start_time), as.character(Sys.time()), CBSA_count)
-  write_csv(temp, paste0("../CBSA/", "CBSA",ifelse(length(CBSA) < 400, "wMSA", "noMSA"), j ,".csv"))
+  write_csv(temp, paste0("../CBSA/", "CBSA",ifelse(length(CBSA) < 400, "wMSA", "noMSA")), j ,".csv")
   return(timestamp_CBSA)
 }
