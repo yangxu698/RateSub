@@ -58,7 +58,8 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 files.name.array = sort(files.name.array)
 MSA = Deposit_InstitutionDetails %>% select(MSA) %>% unique() %>% pull(MSA)
 length(MSA)
-
+MSA
+str(MSA)
 
 ## library(foreach)
 ## library(doParallel)
