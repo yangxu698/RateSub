@@ -9,7 +9,7 @@ smarket_subset = function(j)
           ## deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
           ## summary(deposit.raw)
           deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
-          branch.in.smarket == j[1,]
+          branch.in.smarket = j[1,]
           nrow_temp = nrow(temp)
           temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.smarket) %>% select(accountnumber, productcode, rate, surveydate))
           smarket_count = c(smarket_count, nrow(temp)-nrow_temp)
