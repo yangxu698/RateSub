@@ -60,23 +60,23 @@ MSA = Deposit_InstitutionDetails %>% select(MSA) %>% unique() %>% pull(MSA)
 length(MSA)
 
 
-library(foreach)
-library(doParallel)
-library(iterators)
-source("MSA_Subset.r")
-cores_number = 24
-
-## timestamp = tbl_df(c())
-
-registerDoParallel(cores_number)
-itx = iter(MSA)
-itx$length
-timestamp = foreach(j = itx,.combine = 'rbind') %dopar%
-## for (j in 1:length(MSA))
-              {
-                MSA_subset(j)
-              }
-colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array)
-timestamp = tbl_df(timestamp)
-write_csv(timestamp, paste0("../E12core/", "timestamp",".csv"))
-stopImplicitCluster()
+## library(foreach)
+## library(doParallel)
+## library(iterators)
+## source("MSA_Subset.r")
+## cores_number = 24
+##
+## ## timestamp = tbl_df(c())
+##
+## registerDoParallel(cores_number)
+## itx = iter(MSA)
+## itx$length
+## timestamp = foreach(j = itx,.combine = 'rbind') %dopar%
+## ## for (j in 1:length(MSA))
+##               {
+##                 MSA_subset(j)
+##               }
+## colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array)
+## timestamp = tbl_df(timestamp)
+## write_csv(timestamp, paste0("../E12core/", "timestamp",".csv"))
+## stopImplicitCluster()
