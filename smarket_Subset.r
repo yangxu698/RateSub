@@ -16,6 +16,6 @@ smarket_subset = function(j)
 
     }
   timestamp_smarket = c(j[1,2],as.character(start_time), as.character(Sys.time()), smarket_count)
-  write_csv(temp, paste0("../smarket/", "smarket", j[1,2] ,".csv")
+  write_csv(temp, paste0("../smarket/", "smarket", j[1,2] ,".csv"))
   return(timestamp_smarket)
 }
