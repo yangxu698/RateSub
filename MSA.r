@@ -62,6 +62,7 @@ files.name.array = sort(files.name.array)
 MSA = Deposit_InstitutionDetails %>% select(MSA) %>% unique() %>% pull(MSA)
 length(MSA)
 str(MSA)
+write_csv(MSA, paste0("../E12core/", "MSAlist",".csv"))
 
 library(foreach)
 library(doParallel)
