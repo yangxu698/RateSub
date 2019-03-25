@@ -89,6 +89,7 @@ timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
     {
       smarket_subset(j)
     }
+print(timestamp)
 colnames(timestamp) = c("small_market", "start_time", "end_time", files.name.array[1:2])
 timestamp = tbl_df(timestamp)
 write_csv(timestamp, paste0("../smarket/", "timestamp",".csv"))
