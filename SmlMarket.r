@@ -82,7 +82,7 @@ cores_number = 2
 source("smarket_Subset.r")
 
 registerDoParallel(cores_number)
-itx = iter(smarket[[1]])
+itx = iter(smarket)
 itx$length
 timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
 ## for (j in 1:length(CBSA))
