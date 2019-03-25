@@ -77,7 +77,7 @@ smarket = list(smarket_code[1:1381,],smarket_code[1382:2744,],smarket_code[2745:
 library(foreach)
 library(doParallel)
 library(iterators)
-cores_number = 2
+cores_number = 8
 ## timestamp = tbl_df(c())
 source("smarket_Subset.r")
 
@@ -90,7 +90,7 @@ timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
       smarket_subset(j)
     }
 print(timestamp)
-colnames(timestamp) = c("small_market", "start_time", "end_time", files.name.array[1:2])
+colnames(timestamp) = c("small_market", "start_time", "end_time", files.name.array)
 str(timestamp)
 timestamp = tbl_df(timestamp)
 str(timestamp)
