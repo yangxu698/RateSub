@@ -1,4 +1,3 @@
-
 ## setwd("~/RateWatch/UnzippedData")
 library(dplyr)
 library(readr)
@@ -67,7 +66,7 @@ source("MSA_Subset.r")
 cores_number = 4
 ## timestamp = tbl_df(c())
 registerDoParallel(cores_number)
-itx = iter(MSA)
+itx = iter(MSA[1:2])
 itx$length
 timestamp = foreach(j = itx,.combine = 'rbind') %dopar%
 ## for (j in 1:length(MSA))
