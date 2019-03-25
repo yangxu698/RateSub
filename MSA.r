@@ -1,3 +1,5 @@
+unlink(".RData")
+rm(list=ls())
 ## setwd("~/RateWatch/UnzippedData")
 library(dplyr)
 library(readr)
@@ -54,6 +56,7 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 "depositRateData_2000_06.txt","depositRateData_2003_06.txt","depositRateData_2006_06.txt","depositRateData_2009_06.txt","depositRateData_2012_06.txt","depositRateData_2015_06.txt",
 "depositRateData_2000_07.txt","depositRateData_2003_07.txt","depositRateData_2006_07.txt","depositRateData_2009_07.txt","depositRateData_2012_07.txt","depositRateData_2015_07.txt",
 "depositRateData_2000_08.txt","depositRateData_2003_08.txt","depositRateData_2006_08.txt","depositRateData_2009_08.txt","depositRateData_2012_08.txt","depositRateData_2015_08.txt")
+
 files.name.array = sort(files.name.array)
 MSA = Deposit_InstitutionDetails %>% select(MSA) %>% unique() %>% pull(MSA)
 length(MSA)
