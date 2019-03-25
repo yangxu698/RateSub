@@ -1,12 +1,12 @@
 
 ## setwd("~/RateWatch/UnzippedData")
+library(dplyr)
 library(readr)
 ## DepNameChgHis = read_delim("../DepNameChgHis.txt", delim = "|")
 ## Deposit_acct_join = read_delim("../Deposit_acct_join.txt", delim = "|")
 ## DepositCertChgHist = read_delim("../DepositCertChgHist.txt", delim = "|")
 Deposit_InstitutionDetails = read_delim("../Deposit_InstitutionDetails.txt", delim = "|")
 
-library(dplyr)
 ## DepNameChgHis = DepNameChgHis %>% mutate_if(is.character, as.factor)
 ## Deposit_acct_join  = Deposit_acct_join %>% mutate_if(is.character, as.factor)
 ## DepositCertChgHist = DepositCertChgHist %>% mutate_if(is.character, as.factor)
@@ -15,7 +15,7 @@ library(dplyr)
 ## summary(DepNameChgHis)
 ## summary(Deposit_acct_join)
 ## summary(DepositCertChgHist)
-summary(Deposit_InstitutionDetails)
+## summary(Deposit_InstitutionDetails)
 
 rates.array = c("06MCD10K", "12MCD10K", "60MCD10K", "INTCK0K", "INTCK2.5K", "FIXIRA0K", "VARIRA0K", "SAVE2.5K", "MM10K", "MM25K")
 
