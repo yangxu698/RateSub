@@ -15,7 +15,7 @@ smarket_subset = function(j)
           smarket_count = c(smarket_count, nrow(temp)-nrow_temp)
 
     }
-  timestamp_smarket = c(j[1,2],as.character(start_time), as.character(Sys.time()), smarket_count)
+  timestamp_smarket = c(j[1,2] %>% pull(StateCounty),as.character(start_time), as.character(Sys.time()), smarket_count)
   write_csv(temp, paste0("../smarket/", "smarket.", j[1,2] ,".csv"))
   return(timestamp_smarket)
 }
