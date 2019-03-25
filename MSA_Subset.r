@@ -4,7 +4,7 @@ MSA_subset = function(j)
   temp = tbl_df(c())
   MSA_count = c()
   start_time = Sys.time()
-  write_csv(j, paste0("../E12core/", j,"starts",".csv")))
+  write.csv(j, paste0("../E12core/", j,"starts",".csv")))
   for (i in 1:length(files.name.array))
       {
             deposit.raw = read_delim(paste0("../",files.name.array[i]), delim = "|")
