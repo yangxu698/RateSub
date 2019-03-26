@@ -60,15 +60,15 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 
 files.name.array = sort(files.name.array)
 MSA_list = read.csv("../MSAGet1.csv", stringsAsFactors = FALSE) %>%
-           mutate( MSA = substr(MSA,4,7))
+           mutate( MSA = substr(MSA,4,7)) %>% pull(MSA)
 MSA_list
 str(MSA_list)
 length(unique(MSA_list))
-MSA = Deposit_InstitutionDetails %>% select(MSA) %>% unique() %>% na.omit() %>%
-      anti_join(MSA_list) %>% pull(MSA)
-length(MSA)
-str(MSA)
-write.csv(MSA, paste0("../E12core/", "MSAlist",".csv"))
+## MSA = Deposit_InstitutionDetails %>% select(MSA) %>% unique() %>% na.omit() %>%
+##       anti_join(MSA_list) %>% pull(MSA)
+## length(MSA)
+## str(MSA)
+## write.csv(MSA, paste0("../E12core/", "MSAlist",".csv"))
 
 library(foreach)
 library(doParallel)
@@ -77,7 +77,7 @@ source("MSA_Subset.r")
 cores_number = 4
 ## timestamp = tbl_df(c())
 registerDoParallel(cores_number)
-itx = iter(MSA)
+itx = iter(MSA_list)
 itx$length
 timestamp = foreach(j = itx,.combine = 'rbind') %dopar%
 ## for (j in 1:length(MSA))
@@ -86,5 +86,5 @@ timestamp = foreach(j = itx,.combine = 'rbind') %dopar%
               }
 colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array)
 timestamp = tbl_df(timestamp)
-write_csv(timestamp, paste0("../E12core/", "timestamp",".csv"))
+write_csv(timestamp_3, paste0("../E12core/", "timestamp",".csv"))
 stopImplicitCluster()
