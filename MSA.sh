@@ -1,7 +1,7 @@
 #!/bin/csh
 #$ -M yxu6@nd.edu
 #$ -m abe
-#$ -pe smp 24
+#$ -pe smp 8
 #$ -q long ##*@@emichaellab
 #$ -N MSA
 

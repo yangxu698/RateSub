@@ -74,7 +74,7 @@ library(foreach)
 library(doParallel)
 library(iterators)
 source("MSA_Subset.r")
-cores_number = 24
+cores_number = 8
 ## timestamp = tbl_df(c())
 registerDoParallel(cores_number)
 itx = iter(MSA)
