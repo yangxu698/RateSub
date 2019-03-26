@@ -59,7 +59,13 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 "depositRateData_2000_08.txt","depositRateData_2003_08.txt","depositRateData_2006_08.txt","depositRateData_2009_08.txt","depositRateData_2012_08.txt","depositRateData_2015_08.txt")
 
 files.name.array = sort(files.name.array)
-MSA = Deposit_InstitutionDetails %>% select(MSA) %>% unique() %>% pull(MSA)
+MSA_list = read.csv("../MSAGet1.csv", stringsAsFactors = FALSE) %>%
+           mutate( MSA = substr(MSA,4,7))
+MSA_list
+str(MSA_list)
+length(unique(MSA_list))
+MSA = Deposit_InstitutionDetails %>% select(MSA) %>% unique() %>% na.omit() %>%
+      anti_join(MSA_list) %>% pull(MSA)
 length(MSA)
 str(MSA)
 write.csv(MSA, paste0("../E12core/", "MSAlist",".csv"))
