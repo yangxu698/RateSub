@@ -1,0 +1,5 @@
+
+1)  branches must have survey data in Jan.1999 
+2a) longest survey length  (Use 12MCD10K to calculate the survey length), note that IRA rate length won't be used for branch selection.
+2b) if there are more than one branch (of each bank) share the same survey length, pick the one without acquisition
+3)  the last tie-breaker is branch deposit (keep the branch with the largest deposit)
