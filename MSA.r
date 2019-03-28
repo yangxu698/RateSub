@@ -61,7 +61,7 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 files.name.array = sort(files.name.array)
 ## MSA_list = read.csv("../MSAGet1.csv", stringsAsFactors = FALSE) %>%
 ##            mutate( MSA = substr(MSA,4,7)) %>% pull(MSA)
-MSA_list = read.csv("MSAGroup1.csv") %>% pull(x)
+MSA_list = read.csv("MSAGroup2.csv") %>% pull(x)
 
 ## MSA = Deposit_InstitutionDetails %>% select(MSA) %>% unique() %>% na.omit() %>%
 ##       anti_join(MSA_list) %>% pull(MSA)
