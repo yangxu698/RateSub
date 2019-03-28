@@ -61,7 +61,7 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 files.name.array = sort(files.name.array)
 ## MSA_list = read.csv("../MSAGet1.csv", stringsAsFactors = FALSE) %>%
 ##            mutate( MSA = substr(MSA,4,7)) %>% pull(MSA)
-MSA_list = c("4840","8140")
+MSA_list = read.csv("MSAGroup1.csv")
 
 ## MSA = Deposit_InstitutionDetails %>% select(MSA) %>% unique() %>% na.omit() %>%
 ##       anti_join(MSA_list) %>% pull(MSA)
@@ -73,7 +73,7 @@ library(foreach)
 library(doParallel)
 library(iterators)
 source("MSA_Subset.r")
-cores_number = 2
+cores_number = 4
 ## timestamp = tbl_df(c())
 registerDoParallel(cores_number)
 itx = iter(MSA_list)
