@@ -1,4 +1,4 @@
-branchBGrouping = function(branchBXXXXXX)
+branchBGrouping = function(branchBXXXXXX, MSA_raw)
 {
   branchBX1 = branchBXXXXXX %>%
               group_by(INST_NM) %>%
@@ -20,7 +20,7 @@ branchBGrouping = function(branchBXXXXXX)
               unique() %>%
               group_by(INST_NM) %>%
               mutate(branchNBR = table(INST_NM))
-                    
+
     branchBX2 = branchBX %>%
               filter(branchNBR == 1) %>%
               mutate(branchType = paste0(branchType,"2")) %>%

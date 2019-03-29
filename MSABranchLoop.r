@@ -1,10 +1,9 @@
 MSABranchLoop = function(j)
 {
-    ## MSA_raw = read_csv(paste0("../MSA/",j))
-    ##  str(MSA_raw)
+    MSA_raw = read_csv(paste0("../MSA/",j))
+    str(MSA_raw)
     ##   Extract institutions with only one branch in this MSA   ##
-    branch =  ## MSA_raw %>%
-              read_csv(paste0("../MSA/",j)) %>%
+    branch =  MSA_raw %>%
               left_join(data_complement, by = "accountnumber") %>%
               select(accountnumber, INST_NM) %>%
               group_by(INST_NM) %>%
@@ -20,8 +19,7 @@ MSABranchLoop = function(j)
 
 
     ##   Extract institutions with possible multiple branches, with Jan.1999 data  ##
-    branchB2 = ## MSA_raw %>%
-              read_csv(paste0("../MSA/",j)) %>%
+    branchB2 =  MSA_raw %>%
               filter(accountnumber %in% branchB$accountnumber) %>%
               filter(accountnumber %in% data_199901 ) %>%
               left_join(data_complement, by = "accountnumber") %>%
@@ -35,13 +33,12 @@ MSABranchLoop = function(j)
               unique() %>%
               mutate(branchType = "B1")
 
-    B1group = branchBGrouping(branchB1)
-    B2group = branchBGrouping(branchB2)
+    B1group = branchBGrouping(branchB1,MSA_raw)
+    B2group = branchBGrouping(branchB2,MSA_raw)
 
     ABSelect = rbind(tbl_df(branchA1), B1group, B2group)
 
-    select_data = ## MSA_raw %>%
-                  read_csv(paste0("../MSA/",j)) %>%
+    select_data = MSA_raw %>%
                   left_join(ABSelect, by = "accountnumber") %>%
                   na.omit()
 
