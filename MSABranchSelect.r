@@ -15,7 +15,7 @@ library(iterators)
 cores_number = 4
 ## timestamp = tbl_df(c())
 registerDoParallel(cores_number)
-MSA_list = read_csv("MSA_list.csv")
+MSA_list = read_csv("MSA_list.csv") %>% pull(MSA)
 itx = iter(MSA_list)
 source("branchBGrouping.r")
 
