@@ -61,7 +61,7 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 files.name.array = sort(files.name.array)
 ## MSA_list = read.csv("../MSAGet1.csv", stringsAsFactors = FALSE) %>%
 ##            mutate( MSA = substr(MSA,4,7)) %>% pull(MSA)
-MSA_list = read.csv("MSAGroup5.csv") %>% pull(x)
+MSA_list = read.csv("MSAGroup2.csv") %>% pull(x)
 
 ## MSA = Deposit_InstitutionDetails %>% select(MSA) %>% unique() %>% na.omit() %>%
 ##       anti_join(MSA_list) %>% pull(MSA)
@@ -85,5 +85,5 @@ timestamp = foreach(j = itx,.combine = 'rbind') %dopar%
               }
 colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array)
 timestamp = tbl_df(timestamp)
-write_csv(timestamp_3, paste0("../E12core/", "timestamp",".csv"))
+write_csv(timestamp_3, paste0("../E12core/", "timestamp", as.character(Sys.time()), ".csv"))
 stopImplicitCluster()

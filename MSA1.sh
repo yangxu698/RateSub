@@ -7,4 +7,4 @@
 
 module load R
 
-R CMD BATCH MSA.r
+R CMD BATCH MSA1.r
