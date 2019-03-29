@@ -21,6 +21,7 @@ source("branchBGrouping.r")
 
 foreach(j = itx) %dopar%
 {
+    paste0("../MSA",j)
     MSA_raw = read_csv(paste0("../MSA/",j))
     ##   Extract institutions with only one branch in this MSA   ##
     branch =  MSA_raw %>%
