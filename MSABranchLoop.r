@@ -1,6 +1,7 @@
 MSABranchLoop = function(j)
 {
     MSA_raw = read_csv(paste0("../MSA/",j))
+    str(MSA_raw)
     ##   Extract institutions with only one branch in this MSA   ##
     branch =  MSA_raw %>%
               left_join(data_complement, by = "accountnumber") %>%
