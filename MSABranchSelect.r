@@ -16,12 +16,13 @@ cores_number = 4
 ## timestamp = tbl_df(c())
 registerDoParallel(cores_number)
 MSA_list = read_csv("MSA_list.csv") %>% pull(MSA)
+str(MSA_list)
 itx = iter(MSA_list)
+itx
 source("branchBGrouping.r")
 
 foreach(j = itx) %dopar%
 {
-    print(paste0("../MSA",j))
     MSA_raw = read_csv(paste0("../MSA/",j))
     ##   Extract institutions with only one branch in this MSA   ##
     branch =  MSA_raw %>%
