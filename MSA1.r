@@ -85,5 +85,5 @@ timestamp = foreach(j = itx,.combine = 'rbind') %dopar%
               }
 colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array)
 timestamp = tbl_df(timestamp)
-write_csv(timestamp_3, paste0("../E12core/", "timestamp", as.character(Sys.time()),".csv"))
+write_csv(timestamp, paste0("../E12core/", "timestamp", as.character(Sys.time()),".csv"))
 stopImplicitCluster()
