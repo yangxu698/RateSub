@@ -22,7 +22,7 @@ itx
 source("branchBGrouping.r")
 source("MSABranchLoop.r")
 
-foreach(j = itx, combine = 'c') %dopar%
+foreach(j = itx, .combine = 'c') %dopar%
   {
       MSABranchLoop(j)
   }
