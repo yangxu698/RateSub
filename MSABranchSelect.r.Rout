@@ -1,0 +1,2409 @@
+
+R version 3.5.1 (2018-07-02) -- "Feather Spray"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> unlink(".RData")
+> rm(list=ls())
+> 
+> library(readr)
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> 
+> data_complement = read_delim("../Deposit_InstitutionDetails.txt", delim = "|") %>% select(accountnumber = ACCT_NBR, INST_NM, BRANCHDEPOSITS)
+Parsed with column specification:
+cols(
+  .default = col_character(),
+  CERT_NBR = col_double(),
+  UNINUMBR = col_double(),
+  RSSD_ID = col_double(),
+  BRNCH_SRV_TYP = col_double(),
+  HO_UNINUMBR = col_double(),
+  PHONE = col_double(),
+  ASSET_SZ = col_double(),
+  EST_DT = col_date(format = ""),
+  BRANCHES = col_double(),
+  INSTITUTIONDEPOSITS = col_double(),
+  BRANCHDEPOSITS = col_double(),
+  LON = col_double(),
+  LAT = col_double(),
+  CBSA = col_double(),
+  TM_ZONE = col_double()
+)
+See spec(...) for full column specifications.
+> data_199901 = read_delim("../depositRateData_1999_01.txt", delim = "|") %>%
++               pull(accountnumber) %>% unique()
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  producttype = col_logical(),
+  tierminimum = col_double(),
+  tiermaximum = col_double(),
+  termlength = col_double(),
+  termfrequency = col_logical(),
+  rate = col_double(),
+  apy = col_double(),
+  surveydate = col_date(format = "")
+)
+> branchThrouAcquisition = read_delim("../DepositCertChgHist.txt", delim = "|") %>%
++                           pull(acctnbr)
+Parsed with column specification:
+cols(
+  acctnbr = col_character(),
+  change_date1 = col_date(format = ""),
+  new_cert1 = col_double(),
+  original_cert1 = col_double(),
+  change_date2 = col_logical(),
+  new_cert2 = col_logical(),
+  original_cert2 = col_logical(),
+  change_date3 = col_logical(),
+  new_cert3 = col_logical(),
+  original_cert3 = col_logical(),
+  change_date4 = col_logical(),
+  new_cert4 = col_logical(),
+  original_cert4 = col_logical(),
+  change_date5 = col_logical(),
+  new_cert5 = col_logical(),
+  original_cert5 = col_logical()
+)
+Warning: 38 parsing failures.
+ row            col           expected     actual                        file
+4959 change_date2   1/0/T/F/TRUE/FALSE 2010-01-07 '../DepositCertChgHist.txt'
+4959 new_cert2      1/0/T/F/TRUE/FALSE 64207      '../DepositCertChgHist.txt'
+4959 original_cert2 1/0/T/F/TRUE/FALSE 68218      '../DepositCertChgHist.txt'
+8977 change_date2   1/0/T/F/TRUE/FALSE 2012-09-17 '../DepositCertChgHist.txt'
+8977 new_cert2      1/0/T/F/TRUE/FALSE 34069      '../DepositCertChgHist.txt'
+.... .............. .................. .......... ...........................
+See problems(...) for more details.
+
+> library(foreach)
+> library(doParallel)
+Loading required package: iterators
+Loading required package: parallel
+> library(iterators)
+> cores_number = 4
+> ## timestamp = tbl_df(c())
+> registerDoParallel(cores_number)
+> MSA_list = read_csv("MSA_list.csv") %>% pull(MSA)
+Parsed with column specification:
+cols(
+  MSA = col_character()
+)
+> itx = iter(MSA_list)
+> source("branchBGrouping.r")
+> 
+> foreach(j = itx) %dopar%
++ {
++     print(paste0("../MSA",j))
++     MSA_raw = read_csv(paste0("../MSA/",j))
++     ##   Extract institutions with only one branch in this MSA   ##
++     branch =  MSA_raw %>%
++               left_join(data_complement, by = "accountnumber") %>%
++               select(accountnumber, INST_NM) %>%
++               group_by(INST_NM) %>%
++               unique() %>%
++               mutate(branchNBR = table(INST_NM))
++ 
++     branchA1 = branch %>%
++               filter(branchNBR == 1) %>%
++               mutate(branchType = "A1") %>%
++               select(-branchNBR)
++     branchB = branch %>%
++               filter(branchNBR > 1)
++ 
++ 
++     ##   Extract institutions with possible multiple branches, with Jan.1999 data  ##
++     branchB2 = MSA_raw %>%
++               filter(accountnumber %in% branchB$accountnumber) %>%
++               filter(accountnumber %in% data_199901 ) %>%
++               left_join(data_complement, by = "accountnumber") %>%
++               select(accountnumber, INST_NM) %>%
++               unique() %>%
++               mutate(branchType = "B2")
++ 
++     ##   Extract institutions with possible multiple branches, no Jan.1999 data  ##
++     branchB1 = branchB %>% anti_join(branchB2, by="INST_NM")%>%
++               select(accountnumber, INST_NM) %>%
++               unique() %>%
++               mutate(branchType = "B1")
++ 
++     B1group = branchBGrouping(branchB1)
++     B2group = branchBGrouping(branchB2)
++ 
++     ABSelect = rbind(tbl_df(branchA1), B1group, B2group)
++ 
++     select_data = MSA_raw %>%
++                   left_join(ABSelect, by = "accountnumber") %>%
++                   na.omit()
++ 
++     write_csv(select_data, paste0("../MSABranchSelect/",j))
++   }
+[1] "../MSAMSA0040.csv"
+[1] "../MSAMSA0060.csv"
+[1] "../MSAMSA0160.csv"
+[1] "../MSAMSA0120.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0220.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0200.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0380.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0240.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0500.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0280.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0640.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0320.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0460.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0450.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0480.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0520.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0600.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0760.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0580.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0730.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0740.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0860.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0870.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0880.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0960.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1000.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1010.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1040.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1122.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1260.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1350.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1480.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1080.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1580.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1280.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1660.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0680.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1360.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1760.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0840.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA0920.csv"
+[1] "../MSAMSA1890.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1520.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1020.csv"
+[1] "../MSAMSA1960.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1240.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1320.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1440.csv"
+[1] "../MSAMSA1602.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1560.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2040.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1642.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2180.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2290.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2340.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2520.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1305.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2650.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1740.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1400.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2710.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1880.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2840.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1950.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2980.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1540.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3040.csv"
+[1] "../MSAMSA2030.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1620.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2162.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3160.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1720.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1840.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3290.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3400.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1922.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3520.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3605.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3680.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3760.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2240.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2335.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2440.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2620.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2700.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2760.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2975.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3870.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3000.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1692.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3980.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4100.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4240.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4400.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2020.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1800.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA1900.csv"
+[1] "../MSAMSA3150.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2120.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2000.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4600.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3285.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4800.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3362.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2082.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2200.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4900.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5082.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2330.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2400.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2580.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2190.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5170.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2670.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5330.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2320.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5560.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2750.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2360.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3500.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2560.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2900.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3600.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2995.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5800.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3120.csv"
+[1] "../MSAMSA5990.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3660.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2655.csv"
+[1] "../MSAMSA6120.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2720.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2880.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA2985.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3720.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3280.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6280.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3080.csv"
+[1] "../MSAMSA3350.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3480.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3850.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3240.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3960.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4080.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6400.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3320.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4200.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6560.csv"
+[1] "../MSAMSA3440.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4360.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6680.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3580.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3560.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6760.csv"
+[1] "../MSAMSA3620.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4520.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3610.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3700.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3710.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3810.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6880.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3880.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3840.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4000.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4720.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6980.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4120.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA3920.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7160.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4040.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4280.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4150.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4890.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4992.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7362.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4420.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4320.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4640.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4472.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4840.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4920.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5120.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7490.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7602.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5160.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5280.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5520.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5790.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5960.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7680.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4680.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4880.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7840.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA4940.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8050.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5140.csv"
+[1] "../MSAMSA6080.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5240.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8160.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6240.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6360.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6520.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5360.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8360.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5200.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6660.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5345.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8560.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6740.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5602.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6840.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5720.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6960.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8750.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8920.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5920.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7120.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA9040.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7320.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7480.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7560.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA9260.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6020.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA9360.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7640.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6200.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7800.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8000.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8140.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8320.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6340.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6480.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8520.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8680.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6640.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8872.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA5880.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6720.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6820.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6015.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6922.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6162.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7040.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6320.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6442.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6580.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6690.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA9000.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6800.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7240.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA6895.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA9200.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7000.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA9340.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7200.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7460.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7442.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7520.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7510.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7620.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7610.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7720.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7760.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7880.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA7920.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8080.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8240.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8120.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8400.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8280.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8600.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8780.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8940.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8440.csv"
+[1] "../MSAMSA9080.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA9280.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8640.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA_list.csv"
+[1] "../MSAMSA8800.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA8960.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA9140.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+[1] "../MSAMSA9320.csv"
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Error in { : task 1 failed - "object 'MSA_raw' not found"
+Calls: %dopar% -> <Anonymous>
+Execution halted
