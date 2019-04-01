@@ -19,10 +19,10 @@ MSABranchLoop = function(j)
 
 
     ##   Extract institutions with possible multiple branches, with Jan.1999 data  ##
-    branchB2 =  MSA_raw %>%
-              filter(accountnumber %in% branchB$accountnumber) %>%
+    branchB2 =  ## MSA_raw %>% filter(accountnumber %in%
+              branchB  %>%  ## $accountnumber) %>%
               filter(accountnumber %in% data_199901 ) %>%
-              left_join(data_complement, by = "accountnumber") %>%
+              ## left_join(data_complement, by = "accountnumber") %>%
               select(accountnumber, INST_NM) %>%
               unique() %>%
               mutate(branchType = "B2")

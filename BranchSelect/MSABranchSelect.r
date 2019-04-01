@@ -12,7 +12,7 @@ branchThrouAcquisition = read_delim("../../DepositCertChgHist.txt", delim = "|")
 library(foreach)
 library(doParallel)
 library(iterators)
-cores_number = 4
+cores_number = 2
 ## timestamp = tbl_df(c())
 registerDoParallel(cores_number)
 MSA_list = read_csv("MSA_list.csv") %>% pull(MSA)
