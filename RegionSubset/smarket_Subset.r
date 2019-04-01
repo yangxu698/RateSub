@@ -5,7 +5,7 @@ smarket_subset = function(j)
   start_time = Sys.time()
   for (i in 1:length(files.name.array))
     {
-          deposit.raw = read_delim(paste0("../",files.name.array[i]), delim = "|")
+          deposit.raw = read_delim(paste0("../../",files.name.array[i]), delim = "|")
           ## deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
           ## summary(deposit.raw)
           deposit.raw = deposit.raw %>% filter(productcode %in% rates.array)
@@ -16,6 +16,6 @@ smarket_subset = function(j)
 
     }
   timestamp_smarket = c((j[1,2] %>% pull(StateCounty)),as.character(start_time), as.character(Sys.time()), smarket_count)
-  write_csv(temp, paste0("../smarket/", "smarket.", j[1,2] ,".csv"))
+  write_csv(temp, paste0("../../smarket/", "smarket.", j[1,2] ,".csv"))
   return(timestamp_smarket)
 }

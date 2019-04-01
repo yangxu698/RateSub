@@ -7,7 +7,7 @@ library(readr)
 ## DepNameChgHis = read_delim("../DepNameChgHis.txt", delim = "|")
 ## Deposit_acct_join = read_delim("../Deposit_acct_join.txt", delim = "|")
 ## DepositCertChgHist = read_delim("../DepositCertChgHist.txt", delim = "|")
-Deposit_InstitutionDetails = read_delim("../Deposit_InstitutionDetails.txt", delim = "|")
+Deposit_InstitutionDetails = read_delim("../../Deposit_InstitutionDetails.txt", delim = "|")
 
 ## DepNameChgHis = DepNameChgHis %>% mutate_if(is.character, as.factor)
 ## Deposit_acct_join  = Deposit_acct_join %>% mutate_if(is.character, as.factor)
@@ -61,7 +61,8 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 files.name.array = sort(files.name.array)
 ## MSA_list = read.csv("../MSAGet1.csv", stringsAsFactors = FALSE) %>%
 ##            mutate( MSA = substr(MSA,4,7)) %>% pull(MSA)
-MSA_list = read.csv("MSAGroup2.csv") %>% pull(x)
+MSA_list = read_csv("MSAGet1.csv") %>% mutate(MSA = substr(MSA,4,7)) %>% pull(MSA)
+str(MSA_list)
 
 ## MSA = Deposit_InstitutionDetails %>% select(MSA) %>% unique() %>% na.omit() %>%
 ##       anti_join(MSA_list) %>% pull(MSA)
@@ -85,5 +86,5 @@ timestamp = foreach(j = itx,.combine = 'rbind') %dopar%
               }
 colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array)
 timestamp = tbl_df(timestamp)
-write_csv(timestamp, paste0("../E12core/", "timestamp", as.character(Sys.time()), ".csv"))
+write_csv(timestamp, paste0("../../E12core/", "timestamp", as.character(Sys.time()),".csv"))
 stopImplicitCluster()

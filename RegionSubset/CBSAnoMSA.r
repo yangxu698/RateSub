@@ -4,7 +4,7 @@ library(readr)
 ## DepNameChgHis = read_delim("../DepNameChgHis.txt", delim = "|")
 ## Deposit_acct_join = read_delim("../Deposit_acct_join.txt", delim = "|")
 ## DepositCertChgHist = read_delim("../DepositCertChgHist.txt", delim = "|")
-Deposit_InstitutionDetails = read_delim("../Deposit_InstitutionDetails.txt", delim = "|")
+Deposit_InstitutionDetails = read_delim("../../Deposit_InstitutionDetails.txt", delim = "|")
 
 library(dplyr)
 ## DepNameChgHis = DepNameChgHis %>% mutate_if(is.character, as.factor)
@@ -82,5 +82,5 @@ timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
     }
 colnames(timestamp) = c("CBSA", "start_time", "end_time", files.name.array)
 timestamp = tbl_df(timestamp)
-write_csv(timestamp, paste0("../CBSA/", "timestamp",".csv"))
+write_csv(timestamp, paste0("../../CBSA/", "timestamp",".csv"))
 stopImplicitCluster()

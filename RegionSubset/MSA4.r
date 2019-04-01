@@ -1,12 +1,14 @@
+unlink(".RData")
+rm(list=ls())
 
 ## setwd("~/RateWatch/UnzippedData")
+library(dplyr)
 library(readr)
 ## DepNameChgHis = read_delim("../DepNameChgHis.txt", delim = "|")
 ## Deposit_acct_join = read_delim("../Deposit_acct_join.txt", delim = "|")
 ## DepositCertChgHist = read_delim("../DepositCertChgHist.txt", delim = "|")
-Deposit_InstitutionDetails = read_delim("../Deposit_InstitutionDetails.txt", delim = "|")
+Deposit_InstitutionDetails = read_delim("../../Deposit_InstitutionDetails.txt", delim = "|")
 
-library(dplyr)
 ## DepNameChgHis = DepNameChgHis %>% mutate_if(is.character, as.factor)
 ## Deposit_acct_join  = Deposit_acct_join %>% mutate_if(is.character, as.factor)
 ## DepositCertChgHist = DepositCertChgHist %>% mutate_if(is.character, as.factor)
@@ -15,7 +17,7 @@ library(dplyr)
 ## summary(DepNameChgHis)
 ## summary(Deposit_acct_join)
 ## summary(DepositCertChgHist)
-summary(Deposit_InstitutionDetails)
+## summary(Deposit_InstitutionDetails)
 
 rates.array = c("06MCD10K", "12MCD10K", "60MCD10K", "INTCK0K", "INTCK2.5K", "FIXIRA0K", "VARIRA0K", "SAVE2.5K", "MM10K", "MM25K")
 
@@ -57,42 +59,31 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 "depositRateData_2000_08.txt","depositRateData_2003_08.txt","depositRateData_2006_08.txt","depositRateData_2009_08.txt","depositRateData_2012_08.txt","depositRateData_2015_08.txt")
 
 files.name.array = sort(files.name.array)
-smarket_code = Deposit_InstitutionDetails %>% filter( is.na(MSA) & is.na(CBSA) ) %>%
-        mutate( StateCounty = paste0(STATE_FPS,".",CNTY_FPS)) %>%
-        arrange(StateCounty) %>% select(ACCT_NBR, StateCounty)
-smarket = list(smarket_code[1:1381,],smarket_code[1382:2744,],smarket_code[2745:4113,],
-                smarket_code[4114:5487,],smarket_code[5488:6853,],smarket_code[6854:8236,],
-                smarket_code[8237:9604,],smarket_code[9605:10372,])
+## MSA_list = read.csv("../MSAGet1.csv", stringsAsFactors = FALSE) %>%
+##            mutate( MSA = substr(MSA,4,7)) %>% pull(MSA)
+MSA_list = read.csv("MSAGroup4.csv") %>% pull(x)
 
-## smarket_code[1381:1382,]
-## smarket_code[2744:2745,]
-## smarket_code[4113:4114,]
-## smarket_code[5487:5488,]
-## smarket_code[6853:6854,]
-## smarket_code[8236:8237,]
-## smarket_code[9604:9605,]
-## set.seed(2019)
-## CBSA = sample(CBSA, 200)
+## MSA = Deposit_InstitutionDetails %>% select(MSA) %>% unique() %>% na.omit() %>%
+##       anti_join(MSA_list) %>% pull(MSA)
+## length(MSA)
+## str(MSA)
+## write.csv(MSA, paste0("../E12core/", "MSAlist",".csv"))
 
 library(foreach)
 library(doParallel)
 library(iterators)
-cores_number = 8
+source("MSA_Subset.r")
+cores_number = 4
 ## timestamp = tbl_df(c())
-source("smarket_Subset.r")
-
 registerDoParallel(cores_number)
-itx = iter(smarket)
-itx$length
-timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
-## for (j in 1:length(CBSA))
-    {
-      smarket_subset(j)
-    }
-print(timestamp)
-colnames(timestamp) = c("small_market", "start_time", "end_time", files.name.array)
-str(timestamp)
+itx = iter(MSA_list)
+itx
+timestamp = foreach(j = itx,.combine = 'rbind') %dopar%
+## for (j in 1:length(MSA))
+              {
+                MSA_subset(j)
+              }
+colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array)
 timestamp = tbl_df(timestamp)
-str(timestamp)
-write_csv(timestamp, paste0("../smarket/", "timestamp",".csv"))
+write_csv(timestamp, paste0("../../E12core/", "timestamp",as.character(Sys.time()), ".csv"))
 stopImplicitCluster()
