@@ -4,10 +4,10 @@ rm(list=ls())
 library(readr)
 library(dplyr)
 
-data_complement = read_delim("../Deposit_InstitutionDetails.txt", delim = "|") %>% select(accountnumber = ACCT_NBR, INST_NM, BRANCHDEPOSITS)
-data_199901 = read_delim("../depositRateData_1999_01.txt", delim = "|") %>%
+data_complement = read_delim("../../Deposit_InstitutionDetails.txt", delim = "|") %>% select(accountnumber = ACCT_NBR, INST_NM, BRANCHDEPOSITS)
+data_199901 = read_delim("../../depositRateData_1999_01.txt", delim = "|") %>%
               pull(accountnumber) %>% unique()
-branchThrouAcquisition = read_delim("../DepositCertChgHist.txt", delim = "|") %>%
+branchThrouAcquisition = read_delim("../../DepositCertChgHist.txt", delim = "|") %>%
                           pull(acctnbr)
 library(foreach)
 library(doParallel)
