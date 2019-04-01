@@ -57,6 +57,6 @@ branchBGrouping = function(branchBXXXXXX, MSA_raw)
     branchBX5 = branchBXXXXXX %>%
                 anti_join(category4, by = "INST_NM") %>%
                 mutate(branchType = ifelse(accountnumber %in% institutionAllacquired$accountnumber, paste0(branchType,"A"),paste0(branchType,"X")))
-    return(rbind(category4, branchBX5))
+    return(rbind(category4, tbl_df(branchBX5)))
 
 }
