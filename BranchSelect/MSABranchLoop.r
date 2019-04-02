@@ -13,7 +13,8 @@ MSABranchLoop = function(j)
     branchA1 = branch %>%
               filter(branchNBR == 1) %>%
               mutate(branchType = "A1") %>%
-              select(-branchNBR)
+              select(-branchNBR) %>%
+              mutate(branchType = ifelse(branchType %in% branchThrouAcquisition, paste0(branchType,"1"),paste0(branchType,"2")))
     branchB = branch %>%
               filter(branchNBR > 1)
 
