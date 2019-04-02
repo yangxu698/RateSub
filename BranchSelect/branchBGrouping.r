@@ -21,7 +21,7 @@ branchBGrouping = function(branchBXXXXXX, MSA_raw)
               filter(branchNBR == 1) %>%
               mutate(branchType = paste0(branchType, "2")) %>%
               select(-branchNBR)
-  
+
   branchBX3_temp = branchBX %>%
                   anti_join(branchBX2, by = "INST_NM")
 
@@ -57,6 +57,10 @@ branchBGrouping = function(branchBXXXXXX, MSA_raw)
     branchBX5 = branchBXXXXXX %>%
                 anti_join(category4, by = "INST_NM") %>%
                 mutate(branchType = ifelse(accountnumber %in% institutionAllacquired$accountnumber, paste0(branchType,"A"),paste0(branchType,"X")))
+    if(nrow(tbl_df(branchBX5))>0)
+    {
+      write_csv(tbl_df(branch_BX5), paste0("AlertBranches",j,".csv"))
+    }
     return(rbind(category4, tbl_df(branchBX5)))
 
 }
