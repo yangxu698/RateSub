@@ -1,0 +1,313 @@
+
+R version 3.5.1 (2018-07-02) -- "Feather Spray"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> unlink(".RData")
+> rm(list=ls())
+> library(readr)
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> data_complement = read_delim("../../Deposit_InstitutionDetails.txt", delim = "|") %>% select(accountnumber = ACCT_NBR, INST_NM, BRANCHDEPOSITS)
+Parsed with column specification:
+cols(
+  .default = col_character(),
+  CERT_NBR = col_double(),
+  UNINUMBR = col_double(),
+  RSSD_ID = col_double(),
+  BRNCH_SRV_TYP = col_double(),
+  HO_UNINUMBR = col_double(),
+  PHONE = col_double(),
+  ASSET_SZ = col_double(),
+  EST_DT = col_date(format = ""),
+  BRANCHES = col_double(),
+  INSTITUTIONDEPOSITS = col_double(),
+  BRANCHDEPOSITS = col_double(),
+  LON = col_double(),
+  LAT = col_double(),
+  CBSA = col_double(),
+  TM_ZONE = col_double()
+)
+See spec(...) for full column specifications.
+> data_199901 = read_delim("../../depositRateData_1999_01.txt", delim = "|") %>%
++               pull(accountnumber) %>% unique()
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  producttype = col_logical(),
+  tierminimum = col_double(),
+  tiermaximum = col_double(),
+  termlength = col_double(),
+  termfrequency = col_logical(),
+  rate = col_double(),
+  apy = col_double(),
+  surveydate = col_date(format = "")
+)
+> branchThrouAcquisition1 = read_delim("../../DepositCertChgHist.txt", delim = "|") %>%
++                           pull(acctnbr)
+Parsed with column specification:
+cols(
+  acctnbr = col_character(),
+  change_date1 = col_date(format = ""),
+  new_cert1 = col_double(),
+  original_cert1 = col_double(),
+  change_date2 = col_logical(),
+  new_cert2 = col_logical(),
+  original_cert2 = col_logical(),
+  change_date3 = col_logical(),
+  new_cert3 = col_logical(),
+  original_cert3 = col_logical(),
+  change_date4 = col_logical(),
+  new_cert4 = col_logical(),
+  original_cert4 = col_logical(),
+  change_date5 = col_logical(),
+  new_cert5 = col_logical(),
+  original_cert5 = col_logical()
+)
+Warning: 38 parsing failures.
+ row            col           expected     actual                           file
+4959 change_date2   1/0/T/F/TRUE/FALSE 2010-01-07 '../../DepositCertChgHist.txt'
+4959 new_cert2      1/0/T/F/TRUE/FALSE 64207      '../../DepositCertChgHist.txt'
+4959 original_cert2 1/0/T/F/TRUE/FALSE 68218      '../../DepositCertChgHist.txt'
+8977 change_date2   1/0/T/F/TRUE/FALSE 2012-09-17 '../../DepositCertChgHist.txt'
+8977 new_cert2      1/0/T/F/TRUE/FALSE 34069      '../../DepositCertChgHist.txt'
+.... .............. .................. .......... ..............................
+See problems(...) for more details.
+
+> branchThrouAcquisition2 = read_delim("../../DepNameChgHis.txt", delim = "|") %>%
++                           pull(acctnbr)
+Parsed with column specification:
+cols(
+  acctnbr = col_character(),
+  chgdt = col_date(format = ""),
+  chgtm = col_time(format = ""),
+  fromname = col_character(),
+  toname = col_character()
+)
+> branchThrouAcquisition = c(branchThrouAcquisition1,branchThrouAcquisition2) %>% unique()
+> library(foreach)
+> library(doParallel)
+Loading required package: iterators
+Loading required package: parallel
+> library(iterators)
+> cores_number = 4
+> ## timestamp = tbl_df(c())
+> registerDoParallel(cores_number)
+> smarket_list = read_csv("smarket_list.csv") %>% pull(smarket)
+Parsed with column specification:
+cols(
+  smarket = col_character()
+)
+> str(smarket_list)
+ chr [1:8] "smarket.13.187.csv" "smarket.19.133.csv" "smarket.29.009.csv" ...
+> itx = iter(smarket_list)
+> itx
+$state
+<environment: 0x1260930>
+
+$length
+[1] 8
+
+$checkFunc
+function (...) 
+TRUE
+<environment: 0x12654c0>
+
+$recycle
+[1] FALSE
+
+attr(,"class")
+[1] "containeriter" "iter"         
+> source("branchBGrouping.r")
+> source("smarketBranchLoop.r")
+> 
+> foreach(j = itx, .combine = 'c') %dopar%
++   {
++       MSABranchLoop(j)
++   }
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	1675924 obs. of  4 variables:
+ $ accountnumber: chr  "NC00100004" "NC00100004" "NC00100004" "NC00100004" ...
+ $ productcode  : chr  "MM25K" "12MCD10K" "06MCD10K" "MM10K" ...
+ $ rate         : num  2.45 5.1 4.9 2.45 4.9 5.1 2.45 2.45 4.9 2.45 ...
+ $ surveydate   : Date, format: "1997-12-31" "1997-12-31" ...
+ - attr(*, "spec")=
+  .. cols(
+  ..   accountnumber = col_character(),
+  ..   productcode = col_character(),
+  ..   rate = col_double(),
+  ..   surveydate = col_date(format = "")
+  .. )
+Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	2156999 obs. of  4 variables:
+ $ accountnumber: chr  "MO00100004" "MO00100004" "MO00100004" "MO00100004" ...
+ $ productcode  : chr  "06MCD10K" "MM25K" "MM10K" "60MCD10K" ...
+ $ rate         : num  5.15 2.5 2.5 5.75 5.5 2.5 5.5 2.5 5.15 5.75 ...
+ $ surveydate   : Date, format: "1997-12-31" "1997-12-31" ...
+ - attr(*, "spec")=
+  .. cols(
+  ..   accountnumber = col_character(),
+  ..   productcode = col_character(),
+  ..   rate = col_double(),
+  ..   surveydate = col_date(format = "")
+  .. )
+Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	2390466 obs. of  4 variables:
+ $ accountnumber: chr  "GA00300002" "GA00300002" "GA00300002" "GA00300002" ...
+ $ productcode  : chr  "06MCD10K" "MM25K" "MM10K" "MM10K" ...
+ $ rate         : num  5.5 2.75 2.75 2.75 5.5 2.75 5.5 2.75 2.75 2.75 ...
+ $ surveydate   : Date, format: "1997-12-29" "1997-12-29" ...
+ - attr(*, "spec")=
+  .. cols(
+  ..   accountnumber = col_character(),
+  ..   productcode = col_character(),
+  ..   rate = col_double(),
+  ..   surveydate = col_date(format = "")
+  .. )
+Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	2359724 obs. of  4 variables:
+ $ accountnumber: chr  "IA00200007" "IA00200007" "IA00200007" "IA00200007" ...
+ $ productcode  : chr  "MM25K" "12MCD10K" "MM10K" "06MCD10K" ...
+ $ rate         : num  4.25 5 3.75 4.8 5 4.8 3.75 4.25 3.75 4.8 ...
+ $ surveydate   : Date, format: "1997-12-29" "1997-12-29" ...
+ - attr(*, "spec")=
+  .. cols(
+  ..   accountnumber = col_character(),
+  ..   productcode = col_character(),
+  ..   rate = col_double(),
+  ..   surveydate = col_date(format = "")
+  .. )
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	694660 obs. of  4 variables:
+ $ accountnumber: chr  "VA00700004" "VA00700004" "VA00700004" "VA00700004" ...
+ $ productcode  : chr  "60MCD10K" "MM10K" "06MCD10K" "MM25K" ...
+ $ rate         : num  5 2.8 4.25 3.1 4.65 5 4.25 3.1 2.8 4.65 ...
+ $ surveydate   : Date, format: "1998-01-01" "1998-01-01" ...
+ - attr(*, "spec")=
+  .. cols(
+  ..   accountnumber = col_character(),
+  ..   productcode = col_character(),
+  ..   rate = col_double(),
+  ..   surveydate = col_date(format = "")
+  .. )
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	1591505 obs. of  4 variables:
+ $ accountnumber: chr  "AL00200015" "AL00200015" "AL00200015" "AL00200015" ...
+ $ productcode  : chr  "12MCD10K" "MM10K" "MM25K" "06MCD10K" ...
+ $ rate         : num  5.55 3.75 4.1 5.26 4.1 5.55 5.26 3.75 5.26 4.1 ...
+ $ surveydate   : Date, format: "1997-12-30" "1997-12-30" ...
+ - attr(*, "spec")=
+  .. cols(
+  ..   accountnumber = col_character(),
+  ..   productcode = col_character(),
+  ..   rate = col_double(),
+  ..   surveydate = col_date(format = "")
+  .. )
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	1675043 obs. of  4 variables:
+ $ accountnumber: chr  "MD00100001" "MD00100001" "MD00100001" "MD00100001" ...
+ $ productcode  : chr  "06MCD10K" "MM10K" "12MCD10K" "MM25K" ...
+ $ rate         : num  4.55 2.25 5 2.25 2.25 4.55 2.25 5 5 4.55 ...
+ $ surveydate   : Date, format: "1997-12-29" "1997-12-29" ...
+ - attr(*, "spec")=
+  .. cols(
+  ..   accountnumber = col_character(),
+  ..   productcode = col_character(),
+  ..   rate = col_double(),
+  ..   surveydate = col_date(format = "")
+  .. )
+Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	1838799 obs. of  4 variables:
+ $ accountnumber: chr  "SC01100005" "SC01100005" "SC01100005" "SC01100005" ...
+ $ productcode  : chr  "MM25K" "MM10K" "12MCD10K" "06MCD10K" ...
+ $ rate         : num  3 3 5.25 5.1 5.25 3 3 5.1 5.25 5.1 ...
+ $ surveydate   : Date, format: "1998-01-01" "1998-01-01" ...
+ - attr(*, "spec")=
+  .. cols(
+  ..   accountnumber = col_character(),
+  ..   productcode = col_character(),
+  ..   rate = col_double(),
+  ..   surveydate = col_date(format = "")
+  .. )
+[1] "smarket.13.187.csv" "smarket.19.133.csv" "smarket.29.009.csv"
+[4] "smarket.36.105.csv" "smarket.45.025.csv" "smarket.23.009.csv"
+[7] "smarket.01.005.csv" "smarket.50.001.csv"
+> 
+> stopImplicitCluster()
+> 
+> proc.time()
+   user  system elapsed 
+ 88.010   4.739  66.206 
