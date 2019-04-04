@@ -14,9 +14,9 @@ MSA_subset = function(j)
   ## "Auto New - % Financed", "Auto New - 48 Mo Term","Auto New - 72 Mo Term","Auto Used 2 Yrs - % Financed", "Auto Used 2 Yrs - 48 Mo Term", "Personal Unsecured Loan - Max Term",
   ## write.csv(j, paste0("../../../MSA/", j,"starts",".csv"))
   branch.in.MSA = unlist(Loan_InstitutionDetails %>% filter( msa == j) %>% pull(accountnumber))
-  for (i in 1:length(files.name.array))
+  for (i in 1:length(files_list))
       {
-            deposit.raw = read_delim(paste0("../../../RW_MasterHistoricalLoanData_042018/",files.name.array[i]), delim = "|") %>%
+            deposit.raw = read_delim(paste0("../../../RW_MasterHistoricalLoanData_042018/",files_list[i]), delim = "|") %>%
                           filter(prod_name %in% productfilter) %>%
                           filter(accountnumber %in% branch.in.MSA) %>%
                           select(accountnumber, prod_code, prod_name, date, applicablemeasurement)
