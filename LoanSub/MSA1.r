@@ -5,9 +5,7 @@ rm(list=ls())
 library(dplyr)
 library(readr)
 ## setwd("./LoanSub")
-setwd("/home/yang/RateWatch/UnzippedData/deposit/RateSub/LoanSub")
 Loan_InstitutionDetails = read_delim("../../../RW_MasterHistoricalLoanData_042018/Loan_InstitutionDetails.txt", delim = "|") %>%
-Loan_InstitutionDetails = read_delim("../../../loan/Loan_InstitutionDetails.txt", delim = "|") %>%
       select(accountnumber = acct_nbr, inst_nm, state, city, county, branchdeposits, state_fps, cnty_fps, msa, cbsa)
 MSA = Loan_InstitutionDetails %>% pull(msa) %>% unique() %>% na.omit() %>% sort()
 CBSA = Loan_InstitutionDetails %>% pull(cbsa) %>% unique() %>% na.omit() %>% sort()
@@ -23,10 +21,11 @@ str(Loan_InstitutionDetails)
 ## summary(DepositCertChgHist)
 ## summary(Deposit_InstitutionDetails)
 
-rates.array = c("1YrARM175K", "15YrFixMtg175K", "30YrFixMtg175K", "AUTONEW", "AUTOUSED2YR", "HELOC80LTV", "PersonalUnsecLoan")
+rates.array = c("1YrARM175K", "15YrFixMtg175k", "30YrFixMtg175K", "AUTONEW", "AUTOUSED2YR", "PersonalUnsecLoan")  ## not sure which one is home equity 60 months
 
+files.name.array = read_csv("loan_file_list.csv")
 
-file_list = read_csv("loan_file_list.csv") %>%
+file_list = files.name.array %>%
               mutate(code = gsub("(^.+_)(\\w+)(_.+$)","\\2", file_list)) %>%
               filter(code %in% rates.array) %>%
               pull(file_list) %>%
@@ -42,19 +41,6 @@ file_list
 ## AUTOUSED2YR = read_delim("/home/yang/RateWatch/UnzippedData/loan/loanRateData_AUTOUSED2YR_2005.txt", delim = "|")
 ## PersonalUnsecLoan = read_delim("/home/yang/RateWatch/UnzippedData/loan/loanRateData_PersonalUnsecLoan_2005.txt", delim = "|")
 
-productfilter =  c("1 Year ARM @ 175K - Amort","1 Year ARM @ 175K - Caps","1 Year ARM @ 175K - Dwn Pmt",
-                      "1 Year ARM @ 175K - Orig Fees","1 Year ARM @ 175K - Points", "1 Year ARM @ 175K - Rate",
-                      "15 Yr Fxd Mtg @ 175K - Dwn Pmt","15 Yr Fxd Mtg @ 175K - Orig Fees",
-                      "15 Yr Fxd Mtg @ 175K - Points", "15 Yr Fxd Mtg @ 175K - Rate",
-                      "30 Yr Fxd Mtg @ 175K - Dwn Pmt", "30 Yr Fxd Mtg @ 175K - Orig Fees",
-                      "30 Yr Fxd Mtg @ 175K - Points", "30 Yr Fxd Mtg @ 175K - Rate",
-                      "Auto New - 36 Mo Term","Auto New - 60 Mo Term",
-                      "Auto Used 2 Yrs - % Financed",
-                      "Home E.L.O.C. up to 80% LTV - Annual Fee","Home E.L.O.C. up to 80% LTV - Tier 1",
-                      "Home E.L.O.C. up to 80% LTV - Tier 4",
-                      "Personal Unsecured Loan - Tier 1", "Personal Unsecured Loan - Tier 4")
-  ## "Auto New - % Financed", "Auto New - 48 Mo Term","Auto New - 72 Mo Term","Auto Used 2 Yrs - % Financed", "Auto Used 2 Yrs - 48 Mo Term", "Personal Unsecured Loan - Max Term",
-  ## write.csv(j, paste0("../../../MSA/", j,"starts",".csv"))
 
 library(foreach)
 library(doParallel)
