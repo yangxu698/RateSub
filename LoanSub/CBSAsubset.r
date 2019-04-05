@@ -8,12 +8,12 @@ CBSA_subset = function(j)
     {
           deposit.raw = read_delim(paste0("../../../RW_MasterHistoricalLoanData_042018/",file_list[i]), delim = "|") %>%
                         filter(prod_name %in% productfilter) %>%
-                        filter(accountnumber %in% branch.in.MSA) %>%
+                        filter(accountnumber %in% branch.in.CBSA) %>%
                         select(accountnumber, prod_code, prod_name, date, applicablemeasurement)
           ## deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
           ## summary(deposit.raw)
           nrow_temp = nrow(temp)
-          temp = rbind(temp, deposit.raw %>% filter(accountnumber %in% branch.in.CBSA) %>% select(accountnumber, productcode, rate, surveydate))
+          temp = rbind(temp,deposit.raw) 
           CBSA_count = c(CBSA_count, nrow(temp)-nrow_temp)
 
     }
