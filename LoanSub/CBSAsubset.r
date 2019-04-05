@@ -1,4 +1,3 @@
-
 CBSA_subset = function(j)
 {
   temp = tbl_df(c())
