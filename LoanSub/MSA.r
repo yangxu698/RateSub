@@ -5,9 +5,9 @@ rm(list=ls())
 library(dplyr)
 library(readr)
 ## setwd("./LoanSub")
-setwd("/home/yang/RateWatch/UnzippedData/deposit/RateSub/LoanSub")
+## setwd("/home/yang/RateWatch/UnzippedData/deposit/RateSub/LoanSub")
 Loan_InstitutionDetails = read_delim("../../../RW_MasterHistoricalLoanData_042018/Loan_InstitutionDetails.txt", delim = "|") %>%
-Loan_InstitutionDetails = read_delim("../../../loan/Loan_InstitutionDetails.txt", delim = "|") %>%
+## Loan_InstitutionDetails = read_delim("../../../loan/Loan_InstitutionDetails.txt", delim = "|") %>%
       select(accountnumber = acct_nbr, inst_nm, state, city, county, branchdeposits, state_fps, cnty_fps, msa, cbsa)
 MSA = Loan_InstitutionDetails %>% pull(msa) %>% unique() %>% na.omit() %>% sort()
 CBSA = Loan_InstitutionDetails %>% pull(cbsa) %>% unique() %>% na.omit() %>% sort()
