@@ -9,9 +9,11 @@ library(readr)
 Loan_InstitutionDetails = read_delim("../../../RW_MasterHistoricalLoanData_042018/Loan_InstitutionDetails.txt", delim = "|") %>%
 ## Loan_InstitutionDetails = read_delim("../../../loan/Loan_InstitutionDetails.txt", delim = "|") %>%
       select(accountnumber = acct_nbr, inst_nm, state, city, county, branchdeposits, state_fps, cnty_fps, msa, cbsa)
-MSA = Loan_InstitutionDetails %>% pull(msa) %>% unique() %>% na.omit() %>% sort()
+## MSA = Loan_InstitutionDetails %>% pull(msa) %>% unique() %>% na.omit() %>% sort()
 CBSA = Loan_InstitutionDetails %>% pull(cbsa) %>% unique() %>% na.omit() %>% sort()
-str(MSA)
+CBSAcommon = Loan_InstitutionDetails %>% filter( !is.na(MSA) & !is.na(CBSA) ) %>%
+        select(CBSA) %>% unique() %>% pull(CBSA)
+## CBSA = setdiff(CBSA, CBSAcommon)
 str(CBSA)
 str(Loan_InstitutionDetails)
 ## DepNameChgHis = DepNameChgHis %>% mutate_if(is.character, as.factor)
@@ -59,18 +61,18 @@ productfilter =  c("1 Year ARM @ 175K - Amort","1 Year ARM @ 175K - Caps","1 Yea
 library(foreach)
 library(doParallel)
 library(iterators)
-source("MSAsubset.r")
+source("CBSAsubset.r")
 cores_number = 4
 ## timestamp = tbl_df(c())
 registerDoParallel(cores_number)
-itx = iter(MSA)
+itx = iter(CBSA)
 itx
 timestamp = foreach(j = itx,.combine = 'rbind') %dopar%
 ## for (j in 1:length(MSA))
               {
-                MSA_subset(j)
+                CBSA_subset(j)
               }
-colnames(timestamp) = c("MSA", "start_time", "end_time", files_list)
+colnames(timestamp) = c("CBSA", "start_time", "end_time", files_list)
 timestamp = tbl_df(timestamp)
-write_csv(timestamp, paste0("../../../RW_MasterHistoricalLoanData_042018/MSA/", "timestamp", as.character(Sys.time()),".csv"))
+write_csv(timestamp, paste0("../../../RW_MasterHistoricalLoanData_042018/CBSA/", "timestamp", as.character(Sys.time()),".csv"))
 stopImplicitCluster()
