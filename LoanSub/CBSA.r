@@ -72,7 +72,7 @@ timestamp = foreach(j = itx,.combine = 'rbind') %dopar%
               {
                 CBSA_subset(j)
               }
-colnames(timestamp) = c("CBSA", "start_time", "end_time", files_list)
+colnames(timestamp) = c("CBSA", "start_time", "end_time", file_list)
 timestamp = tbl_df(timestamp)
 write_csv(timestamp, paste0("../../../RW_MasterHistoricalLoanData_042018/CBSA/", "timestamp", as.character(Sys.time()),".csv"))
 stopImplicitCluster()
