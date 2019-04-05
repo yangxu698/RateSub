@@ -3,7 +3,7 @@
 #$ -m abe
 #$ -pe smp 4
 #$ -q long ##*@@emichaellab
-#$ -N CBSAwMSA
+#$ -N CBSA
 
 module load R
 
