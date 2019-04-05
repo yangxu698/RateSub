@@ -20,12 +20,15 @@ file_list = read_csv("loan_file_list.csv") %>%
 
 file_list
 
-smarket_code = Loan_InstitutionDetails %>% filter( is.na(msa) & is.na(cbsa) ) %>%
+smarket = Loan_InstitutionDetails %>% filter( is.na(msa) & is.na(cbsa) ) %>%
         mutate( StateCounty = paste0(state_fps,".",cnty_fps)) %>%
         arrange(StateCounty) %>% select(accountnumber, StateCounty)
+smarket_code = smarket  %>%
+        pull(StateCounty) %>% unique()  ## %>%
+        ## group_by(StateCounty) %>% sample_frac(0.25, replace = FALSE)
+
+
 str(smarket_code)
-summary(unique(smarket_code$accountnumber))
-summary(unique(smarket_code$StateCounty))
 ## CBSA = sample(CBSA, 200)
 
 library(foreach)
@@ -33,10 +36,10 @@ library(doParallel)
 library(iterators)
 cores_number = 4
 ## timestamp = tbl_df(c())
-source("smarket_Subset.r")
+source("smarketSubset.r")
 
 registerDoParallel(cores_number)
-itx = iter(smarket)
+itx = iter(smarket_code)
 itx$length
 timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
 ## for (j in 1:length(CBSA))
@@ -44,7 +47,7 @@ timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
       smarket_subset(j)
     }
 print(timestamp)
-colnames(timestamp) = c("small_market", "start_time", "end_time", files.name.array)
+colnames(timestamp) = c("small_market", "start_time", "end_time", file_list)
 str(timestamp)
 timestamp = tbl_df(timestamp)
 str(timestamp)
