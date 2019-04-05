@@ -11,8 +11,8 @@ Loan_InstitutionDetails = read_delim("../../../RW_MasterHistoricalLoanData_04201
       select(accountnumber = acct_nbr, inst_nm, state, city, county, branchdeposits, state_fps, cnty_fps, msa, cbsa)
 ## MSA = Loan_InstitutionDetails %>% pull(msa) %>% unique() %>% na.omit() %>% sort()
 CBSA = Loan_InstitutionDetails %>% pull(cbsa) %>% unique() %>% na.omit() %>% sort()
-CBSAcommon = Loan_InstitutionDetails %>% filter( !is.na(MSA) & !is.na(CBSA) ) %>%
-        select(CBSA) %>% unique() %>% pull(CBSA)
+CBSAcommon = Loan_InstitutionDetails %>% filter( !is.na(msa) & !is.na(cbsa) ) %>%
+            pull(cbsa) %>% unique()
 ## CBSA = setdiff(CBSA, CBSAcommon)
 str(CBSA)
 str(Loan_InstitutionDetails)
