@@ -52,7 +52,7 @@ itx = iter(smarket_code)
 itx$length
 combine_function_custom = function(List1, List2){
   dfs = rbind(List1$df, List2$df)
-  stamps = c(List1$stamp, List2$stamp)
+  stamps = rbind(List1$stamp, List2$stamp)
   return(list(df = dfs, stamp = stamps))
 }
 temp = foreach( j = itx, .combine = 'combine_function_custom') %dopar%
