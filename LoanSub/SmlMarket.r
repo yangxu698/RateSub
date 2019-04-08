@@ -8,7 +8,7 @@ Loan_InstitutionDetails = read_delim("../../../RW_MasterHistoricalLoanData_04201
                           select(accountnumber = acct_nbr, inst_nm, state, city, county, branchdeposits, state_fps, cnty_fps, msa, cbsa)
 ## setwd("./LoanSub")
 ## Loan_InstitutionDetails = read_delim("../../../loan/Loan_InstitutionDetails.txt", delim = "|") %>%
-                          select(accountnumber = acct_nbr, inst_nm, state, city, county, branchdeposits, state_fps, cnty_fps, msa, cbsa)
+##                          select(accountnumber = acct_nbr, inst_nm, state, city, county, branchdeposits, state_fps, cnty_fps, msa, cbsa)
 rates.array = c("1YrARM175K", "15YrFixMtg175K", "30YrFixMtg175K", "AUTONEW", "AUTOUSED2YR", "HELOC80LTV", "PersonalUnsecLoan")
 
 
