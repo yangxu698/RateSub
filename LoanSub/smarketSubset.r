@@ -14,10 +14,10 @@ smarket_subset = function(j)
           ## summary(deposit.raw)
           nrow_temp = nrow(temp)
           temp = rbind(temp,deposit.raw)
-          CBSA_count = c(CBSA_count, nrow(temp)-nrow_temp)
+          smarket_count = c(smarket_count, nrow(temp)-nrow_temp)
 
     }
-  timestamp_CBSA = c(j,as.character(start_time), as.character(Sys.time()), CBSA_count)
+  timestamp_smarket = c(j,as.character(start_time), as.character(Sys.time()), smarket_count)
   write_csv(temp, paste0("../../../RW_MasterHistoricalLoanData_042018/smarket/", "smarket", j ,".csv"))
-  return(timestamp_CBSA)
+  return(timestamp_smarket)
 }
