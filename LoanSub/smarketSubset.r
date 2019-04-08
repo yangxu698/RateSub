@@ -3,7 +3,7 @@ smarket_subset = function(j)
   temp = tbl_df(c())
   smarket_count = c()
   start_time = Sys.time()
-  branch.in.smarket = unlist(smarket %>% filter( smarket == j) %>% pull(accountnumber))
+  branch.in.smarket = unlist(smarket %>% filter( StateCounty == j) %>% pull(accountnumber))
   for (i in 1:length(file_list))
     {
           deposit.raw = read_delim(paste0("../../../RW_MasterHistoricalLoanData_042018/",file_list[i]), delim = "|") %>%
