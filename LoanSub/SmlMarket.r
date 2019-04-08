@@ -6,7 +6,9 @@ library(readr)
 library(dplyr)
 Loan_InstitutionDetails = read_delim("../../../RW_MasterHistoricalLoanData_042018/Loan_InstitutionDetails.txt", delim = "|") %>%
                           select(accountnumber = acct_nbr, inst_nm, state, city, county, branchdeposits, state_fps, cnty_fps, msa, cbsa)
-
+setwd("./LoanSub")
+Loan_InstitutionDetails = read_delim("../../../loan/Loan_InstitutionDetails.txt", delim = "|") %>%
+                          select(accountnumber = acct_nbr, inst_nm, state, city, county, branchdeposits, state_fps, cnty_fps, msa, cbsa)
 rates.array = c("1YrARM175K", "15YrFixMtg175K", "30YrFixMtg175K", "AUTONEW", "AUTOUSED2YR", "HELOC80LTV", "PersonalUnsecLoan")
 
 
@@ -45,19 +47,26 @@ library(iterators)
 cores_number = 24
 ## timestamp = tbl_df(c())
 source("smarketSubset.r")
-
 registerDoParallel(cores_number)
 itx = iter(smarket_code)
 itx$length
-timestamp = foreach( j = itx, .combine = 'rbind') %dopar%
+combine_function_custom = function(List1, List2){
+  dfs = rbind(List1$df, List2$df)
+  stamps = c(List1$stamp, List2$stamp)
+  return(list(df = dfs, stamp = stamps))
+}
+temp = foreach( j = itx, .combine = 'combine_function_custom') %dopar%
 ## for (j in 1:length(CBSA))
     {
       smarket_subset(j)
     }
-print(timestamp)
+
+
+write_csv(temp[[1]], paste0("../../../RW_MasterHistoricalLoanData_042018/smarket/", "smarketInOne" ,".csv"))
+timestamp = temp[[2]]
 colnames(timestamp) = c("small_market", "start_time", "end_time", file_list)
-str(timestamp)
+## str(timestamp)
 timestamp = tbl_df(timestamp)
 str(timestamp)
-write_csv(timestamp, paste0("../../smarket/", "timestamp",".csv"))
+write_csv(timestamp, paste0("../../../RW_MasterHistoricalLoanData_042018/smarket/", "timestamp",".csv"))
 stopImplicitCluster()
