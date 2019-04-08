@@ -42,7 +42,7 @@ productfilter =  c("1 Year ARM @ 175K - Amort","1 Year ARM @ 175K - Caps","1 Yea
 library(foreach)
 library(doParallel)
 library(iterators)
-cores_number = 4
+cores_number = 24
 ## timestamp = tbl_df(c())
 source("smarketSubset.r")
 
