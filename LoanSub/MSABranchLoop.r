@@ -43,14 +43,26 @@ MSABranchLoop = function(j)
 
     branchBXX = MSA_raw %>%
               filter(accountnumber %in% branchBX$accountnumber) %>%
-              ## mutate(date_num = as.numeric(as.POSIXct(surveydate))) %>%
+              left_join(branchBX, by = "accountnumber") %>%  ## append the info: institution name and branch deposits
+              group_by(prod_code, accountnumber) %>%
+              mutate(survey_span1 = table(prod_code)) %>%
+              ## group_by(accountnumber) %>%  ## grouping by accountnumber
+              ## mutate(survey_span = table(accountnumber)) %>%   ## calculate the survey span
+              ## ungroup() %>% group_by(inst_nm) %>% top_n(1, survey_span)  %>% ## grouping by institution name and select the longest survey span
+              ungroup() %>% group_by(inst_nm,prod_code) %>% top_n(1, survey_span1)  %>% ## grouping by institution name and select the longest survey span
+              ungroup() %>%
+              select(accountnumber, inst_nm, prod_name, survey_span1) %>%
+              unique()
+
+    branchBXX1 = MSA_raw %>%
+              filter(accountnumber %in% branchBX$accountnumber) %>%
               left_join(branchBX, by = "accountnumber") %>%  ## append the info: institution name and branch deposits
               group_by(prod_code) %>%
               group_by(accountnumber) %>%  ## grouping by accountnumber
               mutate(survey_span = table(accountnumber)) %>%   ## calculate the survey span
               ungroup() %>% group_by(inst_nm) %>% top_n(1, survey_span)  %>% ## grouping by institution name and select the longest survey span
               ungroup() %>%
-              select(accountnumber, inst_nm) %>%
+              select(accountnumber, inst_nm, survey_span) %>%
               unique()
 
     branchB2 = branchBXX %>%
