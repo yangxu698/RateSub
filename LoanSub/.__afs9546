@@ -1,0 +1,63 @@
+
+R version 3.5.1 (2018-07-02) -- "Feather Spray"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> unlink(".RData")
+> rm(list=ls())
+> 
+> ## setwd("~/RateWatch/UnzippedData")
+> library(readr)
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> Loan_InstitutionDetails = read_delim("../../../RW_MasterHistoricalLoanData_042018/Loan_InstitutionDetails.txt", delim = "|") %>%
++                           select(accountnumber = acct_nbr, inst_nm, state, city, county, branchdeposits, state_fps, cnty_fps, msa, cbsa)
+Parsed with column specification:
+cols(
+  .default = col_character(),
+  cert_nbr = col_double(),
+  uninumbr = col_double(),
+  rssd_id = col_double(),
+  brnch_srv_typ = col_double(),
+  ho_uninumbr = col_double(),
+  phone = col_double(),
+  asset_sz = col_double(),
+  est_dt = col_date(format = ""),
+  branches = col_double(),
+  institutiondeposits = col_double(),
+  branchdeposits = col_double(),
+  lon = col_double(),
+  lat = col_double(),
+  cbsa = col_double(),
+  tm_zone = col_double()
+)
+See spec(...) for full column specifications.
+> setwd("./LoanSub")
+Error in setwd("./LoanSub") : cannot change working directory
+Execution halted

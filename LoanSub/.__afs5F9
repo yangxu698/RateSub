@@ -1,0 +1,273 @@
+
+R version 3.5.1 (2018-07-02) -- "Feather Spray"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> unlink(".RData")
+> rm(list=ls())
+> 
+> ## setwd("~/RateWatch/UnzippedData")
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> library(readr)
+> ## setwd("./LoanSub")
+> Loan_InstitutionDetails = read_delim("../../../RW_MasterHistoricalLoanData_042018/Loan_InstitutionDetails.txt", delim = "|") %>%
++       select(accountnumber = acct_nbr, inst_nm, state, city, county, branchdeposits, state_fps, cnty_fps, msa, cbsa)
+Parsed with column specification:
+cols(
+  .default = col_character(),
+  cert_nbr = col_double(),
+  uninumbr = col_double(),
+  rssd_id = col_double(),
+  brnch_srv_typ = col_double(),
+  ho_uninumbr = col_double(),
+  phone = col_double(),
+  asset_sz = col_double(),
+  est_dt = col_date(format = ""),
+  branches = col_double(),
+  institutiondeposits = col_double(),
+  branchdeposits = col_double(),
+  lon = col_double(),
+  lat = col_double(),
+  cbsa = col_double(),
+  tm_zone = col_double()
+)
+See spec(...) for full column specifications.
+> MSA = Loan_InstitutionDetails %>% pull(msa) %>% unique() %>% na.omit() %>% sort()
+> CBSA = Loan_InstitutionDetails %>% pull(cbsa) %>% unique() %>% na.omit() %>% sort()
+> str(MSA)
+ chr [1:279] "0040" "0060" "0120" "0160" "0200" "0220" "0240" "0280" "0320" ...
+> str(CBSA)
+ num [1:917] 10100 10140 10180 10220 10300 ...
+> str(Loan_InstitutionDetails)
+Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	109524 obs. of  10 variables:
+ $ accountnumber : chr  "CA00101736" "GA00700009" "GA00700016" "GA00700019" ...
+ $ inst_nm       : chr  "Northrop Grumman Federal Credit Union" "Sea Island Bank" "Ameris Bank" "Ameris Bank" ...
+ $ state         : chr  "CA" "GA" "GA" "GA" ...
+ $ city          : chr  "El Segundo" "Savannah" "Hinesville" "Savannah" ...
+ $ county        : chr  "Los Angeles" "Chatham" "Liberty" "Chatham" ...
+ $ branchdeposits: num  0 131447 89068 89466 18280 ...
+ $ state_fps     : chr  "06" "13" "13" "13" ...
+ $ cnty_fps      : chr  "037" "051" "179" "051" ...
+ $ msa           : chr  "4472" "7520" NA "7520" ...
+ $ cbsa          : num  31080 42340 25980 42340 42340 ...
+ - attr(*, "spec")=
+  .. cols(
+  ..   acct_nbr = col_character(),
+  ..   inst_nm = col_character(),
+  ..   inst_typ = col_character(),
+  ..   cert_nbr = col_double(),
+  ..   uninumbr = col_double(),
+  ..   rssd_id = col_double(),
+  ..   brnch_srv_typ = col_double(),
+  ..   ho_uninumbr = col_double(),
+  ..   web = col_character(),
+  ..   phone = col_double(),
+  ..   asset_sz = col_double(),
+  ..   hd_offc = col_character(),
+  ..   est_dt = col_date(format = ""),
+  ..   rtng_nbr = col_character(),
+  ..   address = col_character(),
+  ..   city = col_character(),
+  ..   state = col_character(),
+  ..   zip = col_character(),
+  ..   county = col_character(),
+  ..   branches = col_double(),
+  ..   institutiondeposits = col_double(),
+  ..   branchdeposits = col_double(),
+  ..   lon = col_double(),
+  ..   lat = col_double(),
+  ..   cnty_fps = col_character(),
+  ..   state_fps = col_character(),
+  ..   msa = col_character(),
+  ..   cbsa = col_double(),
+  ..   tm_zone = col_double()
+  .. )
+> ## DepNameChgHis = DepNameChgHis %>% mutate_if(is.character, as.factor)
+> ## Deposit_acct_join  = Deposit_acct_join %>% mutate_if(is.character, as.factor)
+> ## DepositCertChgHist = DepositCertChgHist %>% mutate_if(is.character, as.factor)
+> ## Deposit_InstitutionDetails = Deposit_InstitutionDetails %>% mutate_if(is.character, as.factor)
+> 
+> ## summary(DepNameChgHis)
+> ## summary(DepositCertChgHist)
+> ## summary(Deposit_InstitutionDetails)
+> 
+> rates.array = c("1YrARM175K", "15YrFixMtg175k", "30YrFixMtg175K", "AUTONEW", "AUTOUSED2YR", "PersonalUnsecLoan")  ## not sure which one is home equity 60 months
+> 
+> files.name.array = read_csv("loan_file_list.csv")
+Parsed with column specification:
+cols(
+  file_list = col_character()
+)
+> 
+> file_list = files.name.array %>%
++               mutate(code = gsub("(^.+_)(\\w+)(_.+$)","\\2", file_list)) %>%
++               filter(code %in% rates.array) %>%
++               pull(file_list) %>%
++               sort()
+> 
+> file_list
+ [1] "loanRateData_1YrARM175K_2000.txt"       
+ [2] "loanRateData_1YrARM175K_2001.txt"       
+ [3] "loanRateData_1YrARM175K_2002.txt"       
+ [4] "loanRateData_1YrARM175K_2003.txt"       
+ [5] "loanRateData_1YrARM175K_2004.txt"       
+ [6] "loanRateData_1YrARM175K_2005.txt"       
+ [7] "loanRateData_1YrARM175K_2006.txt"       
+ [8] "loanRateData_1YrARM175K_2007.txt"       
+ [9] "loanRateData_1YrARM175K_2008.txt"       
+[10] "loanRateData_1YrARM175K_2009.txt"       
+[11] "loanRateData_1YrARM175K_2010.txt"       
+[12] "loanRateData_1YrARM175K_2011.txt"       
+[13] "loanRateData_1YrARM175K_2012.txt"       
+[14] "loanRateData_1YrARM175K_2013.txt"       
+[15] "loanRateData_1YrARM175K_2014.txt"       
+[16] "loanRateData_1YrARM175K_2015.txt"       
+[17] "loanRateData_1YrARM175K_2016.txt"       
+[18] "loanRateData_1YrARM175K_2017.txt"       
+[19] "loanRateData_1YrARM175K_2018.txt"       
+[20] "loanRateData_30YrFixMtg175K_2000.txt"   
+[21] "loanRateData_30YrFixMtg175K_2001.txt"   
+[22] "loanRateData_30YrFixMtg175K_2002.txt"   
+[23] "loanRateData_30YrFixMtg175K_2003.txt"   
+[24] "loanRateData_30YrFixMtg175K_2004.txt"   
+[25] "loanRateData_30YrFixMtg175K_2005.txt"   
+[26] "loanRateData_30YrFixMtg175K_2006.txt"   
+[27] "loanRateData_30YrFixMtg175K_2007.txt"   
+[28] "loanRateData_30YrFixMtg175K_2008.txt"   
+[29] "loanRateData_30YrFixMtg175K_2009.txt"   
+[30] "loanRateData_30YrFixMtg175K_2010.txt"   
+[31] "loanRateData_30YrFixMtg175K_2011.txt"   
+[32] "loanRateData_30YrFixMtg175K_2012.txt"   
+[33] "loanRateData_30YrFixMtg175K_2013.txt"   
+[34] "loanRateData_30YrFixMtg175K_2014.txt"   
+[35] "loanRateData_30YrFixMtg175K_2015.txt"   
+[36] "loanRateData_30YrFixMtg175K_2016.txt"   
+[37] "loanRateData_30YrFixMtg175K_2017.txt"   
+[38] "loanRateData_30YrFixMtg175K_2018.txt"   
+[39] "loanRateData_AUTONEW_2000.txt"          
+[40] "loanRateData_AUTONEW_2001.txt"          
+[41] "loanRateData_AUTONEW_2002.txt"          
+[42] "loanRateData_AUTONEW_2003.txt"          
+[43] "loanRateData_AUTONEW_2004.txt"          
+[44] "loanRateData_AUTONEW_2005.txt"          
+[45] "loanRateData_AUTONEW_2006.txt"          
+[46] "loanRateData_AUTONEW_2007.txt"          
+[47] "loanRateData_AUTONEW_2008.txt"          
+[48] "loanRateData_AUTONEW_2009.txt"          
+[49] "loanRateData_AUTONEW_2010.txt"          
+[50] "loanRateData_AUTONEW_2011.txt"          
+[51] "loanRateData_AUTONEW_2012.txt"          
+[52] "loanRateData_AUTONEW_2013.txt"          
+[53] "loanRateData_AUTONEW_2014.txt"          
+[54] "loanRateData_AUTONEW_2015.txt"          
+[55] "loanRateData_AUTONEW_2016.txt"          
+[56] "loanRateData_AUTONEW_2017.txt"          
+[57] "loanRateData_AUTONEW_2018.txt"          
+[58] "loanRateData_AUTOUSED2YR_2000.txt"      
+[59] "loanRateData_AUTOUSED2YR_2001.txt"      
+[60] "loanRateData_AUTOUSED2YR_2002.txt"      
+[61] "loanRateData_AUTOUSED2YR_2003.txt"      
+[62] "loanRateData_AUTOUSED2YR_2004.txt"      
+[63] "loanRateData_AUTOUSED2YR_2005.txt"      
+[64] "loanRateData_AUTOUSED2YR_2006.txt"      
+[65] "loanRateData_AUTOUSED2YR_2007.txt"      
+[66] "loanRateData_AUTOUSED2YR_2008.txt"      
+[67] "loanRateData_AUTOUSED2YR_2009.txt"      
+[68] "loanRateData_AUTOUSED2YR_2010.txt"      
+[69] "loanRateData_AUTOUSED2YR_2011.txt"      
+[70] "loanRateData_AUTOUSED2YR_2012.txt"      
+[71] "loanRateData_AUTOUSED2YR_2013.txt"      
+[72] "loanRateData_AUTOUSED2YR_2014.txt"      
+[73] "loanRateData_AUTOUSED2YR_2015.txt"      
+[74] "loanRateData_AUTOUSED2YR_2016.txt"      
+[75] "loanRateData_AUTOUSED2YR_2017.txt"      
+[76] "loanRateData_AUTOUSED2YR_2018.txt"      
+[77] "loanRateData_PersonalUnsecLoan_2000.txt"
+[78] "loanRateData_PersonalUnsecLoan_2001.txt"
+[79] "loanRateData_PersonalUnsecLoan_2002.txt"
+[80] "loanRateData_PersonalUnsecLoan_2003.txt"
+[81] "loanRateData_PersonalUnsecLoan_2004.txt"
+[82] "loanRateData_PersonalUnsecLoan_2005.txt"
+[83] "loanRateData_PersonalUnsecLoan_2006.txt"
+[84] "loanRateData_PersonalUnsecLoan_2007.txt"
+[85] "loanRateData_PersonalUnsecLoan_2008.txt"
+[86] "loanRateData_PersonalUnsecLoan_2009.txt"
+[87] "loanRateData_PersonalUnsecLoan_2010.txt"
+[88] "loanRateData_PersonalUnsecLoan_2011.txt"
+[89] "loanRateData_PersonalUnsecLoan_2012.txt"
+[90] "loanRateData_PersonalUnsecLoan_2013.txt"
+[91] "loanRateData_PersonalUnsecLoan_2014.txt"
+[92] "loanRateData_PersonalUnsecLoan_2015.txt"
+[93] "loanRateData_PersonalUnsecLoan_2016.txt"
+[94] "loanRateData_PersonalUnsecLoan_2017.txt"
+[95] "loanRateData_PersonalUnsecLoan_2018.txt"
+> ## MSA_list = read.csv("../MSAGet1.csv", stringsAsFactors = FALSE) %>%
+> ##            mutate( MSA = substr(MSA,4,7)) %>% pull(MSA)
+> ## ARM1Yr = read_delim("/home/yang/RateWatch/UnzippedData/loan/loanRateData_1YrARM175K_2005.txt", delim = "|")
+> ## FixMtg15Yr = read_delim("/home/yang/RateWatch/UnzippedData/loan/loanRateData_15YrFixMtg175K_2005.txt", delim = "|")
+> ## FixMtg30Yr = read_delim("/home/yang/RateWatch/UnzippedData/loan/loanRateData_30YrFixMtg175K_2005.txt", delim = "|")
+> ## AUTONEW  = read_delim("/home/yang/RateWatch/UnzippedData/loan/loanRateData_AUTONEW_2005.txt", delim = "|")
+> ## AUTOUSED2YR = read_delim("/home/yang/RateWatch/UnzippedData/loan/loanRateData_AUTOUSED2YR_2005.txt", delim = "|")
+> ## PersonalUnsecLoan = read_delim("/home/yang/RateWatch/UnzippedData/loan/loanRateData_PersonalUnsecLoan_2005.txt", delim = "|")
+> 
+> 
+> library(foreach)
+> library(doParallel)
+Loading required package: iterators
+Loading required package: parallel
+> library(iterators)
+> source("MSAsubset.r")
+> cores_number = 4
+> ## timestamp = tbl_df(c())
+> registerDoParallel(cores_number)
+> itx = iter(MSA)
+> itx
+$state
+<environment: 0x84bdc60>
+
+$length
+[1] 279
+
+$checkFunc
+function (...) 
+TRUE
+<environment: 0x84b5fb0>
+
+$recycle
+[1] FALSE
+
+attr(,"class")
+[1] "containeriter" "iter"         
+> timestamp = foreach(j = itx,.combine = 'rbind') %dopar%
++ ## for (j in 1:length(MSA))
++               {
++                 MSA_subset(j)
++               }
+Error in { : task 1 failed - "object 'files_list' not found"
+Calls: %dopar% -> <Anonymous>
+Execution halted
