@@ -1,48 +1,79 @@
-MSABranchLoop = function(j)
+CBSABranchLoop = function(j)
 {
-    MSA_raw = read_csv(paste0("../../CBSA/",j))
-    str(MSA_raw)
-    ##   Extract institutions with only one branch in this MSA   ##
-    branch =  MSA_raw %>%
+    CBSA_raw = read_csv(paste0("../../RW_MasterHistoricalLoanData_042018/CBSA/",j))
+    str(CBSA_raw)
+    ##   Extract institutions with only one branch in this CBSA   ##
+    branch =  CBSA_raw %>%
               left_join(data_complement, by = "accountnumber") %>%
-              select(accountnumber, INST_NM) %>%
-              group_by(INST_NM) %>%
+              select(accountnumber, prod_code, date, applicablemeasurement, inst_nm, branchdeposits) %>%
+              ## group_by(prod_code) %>%
+              select(accountnumber, inst_nm) %>%
+              ## group_by(inst_nm, prod_code) %>%
               unique() %>%
-              mutate(branchNBR = table(INST_NM))
+              group_by(inst_nm) %>%
+              mutate(branchNBR = table(inst_nm))
 
-    branchA1 = branch %>%
+    branchA = branch %>%
               filter(branchNBR == 1) %>%
-              mutate(branchType = "A1") %>%
+              mutate(branchType = "A") %>%
               select(-branchNBR) %>%
               mutate(branchType = ifelse(branchType %in% branchThrouAcquisition, paste0(branchType,"1"),paste0(branchType,"2")))
     branchB = branch %>%
-              filter(branchNBR > 1)
+              anti_join(branchA, by = 'inst_nm')
 
 
     ##   Extract institutions with possible multiple branches, with Jan.1999 data  ##
-    branchB2 =  ## MSA_raw %>% filter(accountnumber %in%
-              branchB  %>%  ## $accountnumber) %>%
-              filter(accountnumber %in% data_199901 ) %>%
-              ## left_join(data_complement, by = "accountnumber") %>%
-              select(accountnumber, INST_NM) %>%
-              unique() %>%
-              mutate(branchType = "B2")
+    branchB1 =  branchB  %>%  ## $accountnumber) %>%
+                filter(!accountnumber %in% branchThrouAcquisition) %>%
+                select(accountnumber, inst_nm) %>%
+                unique() %>%
+                group_by(inst_nm) %>%
+                mutate(branchNBR = table(inst_nm)) %>%
+                filter(branchNBR == 1) %>%
+                mutate(branchType = "B1")
 
     ##   Extract institutions with possible multiple branches, no Jan.1999 data  ##
-    branchB1 = branchB %>% anti_join(branchB2, by="INST_NM")%>%
-              select(accountnumber, INST_NM) %>%
-              unique() %>%
-              mutate(branchType = "B1")
+    branchBX = branchB %>% anti_join(branchB1, by="inst_nm") %>%
+               ## group_by(prod_code) %>%
+               select(accountnumber, inst_nm) %>%
+               ## group_by(inst_nm)
+               unique()
+               ## mutate(branchType = "B1")
 
-    B1group = branchBGrouping(branchB1,MSA_raw)
-    B2group = branchBGrouping(branchB2,MSA_raw)
 
-    ABSelect = rbind(tbl_df(branchA1), B1group, B2group)
+    branchBXX = CBSA_raw %>%
+              filter(accountnumber %in% branchBX$accountnumber) %>%
+              ## mutate(date_num = as.numeric(as.POSIXct(surveydate))) %>%
+              left_join(branchBX, by = "accountnumber") %>%  ## append the info: institution name and branch deposits
+              group_by(prod_code) %>%
+              group_by(accountnumber) %>%  ## grouping by accountnumber
+              mutate(survey_span = table(accountnumber)) %>%   ## calculate the survey span
+              ungroup() %>% group_by(inst_nm) %>% top_n(1, survey_span)  %>% ## grouping by institution name and select the longest survey span
+              ungroup() %>%
+              select(accountnumber, inst_nm) %>%
+              unique()
 
-    select_data = MSA_raw %>%
+    branchB2 = branchBXX %>%
+               group_by(inst_nm) %>%
+               mutate(branchNBR = table(inst_nm)) %>%
+               filter(branchNBR == 1) %>%
+               mutate(branchType = "B2") %>%
+               select(-branchNBR)
+
+    branchB3 = branchBXX %>%
+               anti_join(branchB2, by = "inst_nm") %>%
+               left_join(data_complement %>% select(-inst_nm), by = "accountnumber") %>%
+               group_by(inst_nm) %>%
+               top_n(1, branchdeposits) %>%
+               select(-branchdeposits) %>%
+               mutate(branchType = "B3")
+
+    ABSelect = rbind(tbl_df(branchA), tbl_df(branchB1), tbl_df(branchB2), tbl_df(branchB3))
+
+    select_data = CBSA_raw %>%
                   left_join(ABSelect, by = "accountnumber") %>%
                   na.omit()
 
-    write_csv(select_data, paste0("../../CBSABranchSelect/",j))
+    write_csv(select_data, paste0("../../RW_MasterHistoricalLoanData_042018/CBSABranchSelect/",j))
     return(j)
 }
