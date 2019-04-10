@@ -36,7 +36,7 @@ CBSABranchLoop = function(j)
     branchBX = branchB %>% anti_join(branchB1, by="inst_nm") %>%
                select(accountnumber, inst_nm) %>%
                unique()
-               
+
     products_in_filter = c("1 Year ARM @ 175K - Rate",
                           "15 Yr Fxd Mtg @ 175K - Rate",
                           "30 Yr Fxd Mtg @ 175K - Rate",
@@ -75,7 +75,7 @@ CBSABranchLoop = function(j)
                filter(branchNBR == 1) %>%
                mutate(branchType = "B2") %>%
                ungroup() %>%
-               select(-branchNBR)
+               select(-branchNBR, -survey_span)
 
     branchB3 = branchBXX %>%
                anti_join(branchB2, by = "accountnumber") %>%

@@ -75,7 +75,7 @@ MSABranchLoop = function(j)
                filter(branchNBR == 1) %>%
                mutate(branchType = "B2") %>%
                ungroup() %>%
-               select(-branchNBR)
+               select(-branchNBR, -survey_span)
 
     branchB3 = branchBXX %>%
                anti_join(branchB2, by = "accountnumber") %>%
