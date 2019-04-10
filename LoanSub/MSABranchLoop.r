@@ -6,18 +6,16 @@ MSABranchLoop = function(j)
     branch =  MSA_raw %>%
               left_join(data_complement, by = "accountnumber") %>%
               select(accountnumber, prod_code, date, applicablemeasurement, inst_nm, branchdeposits) %>%
-              ## group_by(prod_code) %>%
               select(accountnumber, inst_nm) %>%
-              ## group_by(inst_nm, prod_code) %>%
               unique() %>%
               group_by(inst_nm) %>%
               mutate(branchNBR = table(inst_nm))
 
     branchA = branch %>%
               filter(branchNBR == 1) %>%
-              mutate(branchType = "A") %>%
               select(-branchNBR) %>%
-              mutate(branchType = ifelse(branchType %in% branchThrouAcquisition, paste0(branchType,"1"),paste0(branchType,"2")))
+              mutate(branchType = ifelse(accountnumber %in% branchThrouAcquisition, "A1","A2"))
+
     branchB = branch %>%
               anti_join(branchA, by = 'inst_nm')
 
@@ -30,7 +28,8 @@ MSABranchLoop = function(j)
                 group_by(inst_nm) %>%
                 mutate(branchNBR = table(inst_nm)) %>%
                 filter(branchNBR == 1) %>%
-                mutate(branchType = "B1")
+                mutate(branchType = "B1") %>%
+                select(-branchNBR)
 
     ##   Extract institutions with possible multiple branches, no Jan.1999 data  ##
     branchBX = branchB %>% anti_join(branchB1, by="inst_nm") %>%
@@ -47,6 +46,7 @@ MSABranchLoop = function(j)
                           "Home E.L.O.C. up to 80% LTV - Tier 4",
                           "Personal Unsecured Loan - Tier 1",
                           "Personal Unsecured Loan - Tier 4")
+                          
     branchBXX = MSA_raw %>%
                 filter(accountnumber %in% branchBX$accountnumber) %>%
                 left_join(branchBX, by = "accountnumber") %>%  ## append the info: institution name and branch deposits
@@ -83,7 +83,7 @@ MSABranchLoop = function(j)
                group_by(prod_name, inst_nm) %>%
                top_n(1, branchdeposits) %>%
                ungroup() %>%
-               select(-branchdeposits, -prod_name) %>%
+               select(-branchdeposits, -prod_name, - survey_span) %>%
                mutate(branchType = "B3")
 
     branchB2 = branchB2 %>% select(-prod_name)
