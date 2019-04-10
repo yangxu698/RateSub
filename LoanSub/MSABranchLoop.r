@@ -37,7 +37,6 @@ MSABranchLoop = function(j)
                select(accountnumber, inst_nm) %>%
                unique()
 
-
     products_in_filter = c("1 Year ARM @ 175K - Rate",
                           "15 Yr Fxd Mtg @ 175K - Rate",
                           "30 Yr Fxd Mtg @ 175K - Rate",
@@ -49,15 +48,15 @@ MSABranchLoop = function(j)
                           "Personal Unsecured Loan - Tier 1",
                           "Personal Unsecured Loan - Tier 4")
     branchBXX = MSA_raw %>%
-              filter(accountnumber %in% branchBX$accountnumber) %>%
-              left_join(branchBX, by = "accountnumber") %>%  ## append the info: institution name and branch deposits
-              group_by(prod_code, accountnumber) %>%
-              mutate(survey_span = table(prod_code)) %>%
-              ungroup() %>% group_by(inst_nm,prod_code) %>% top_n(1, survey_span)  %>% ## grouping by institution name and select the longest survey span
-              ungroup() %>%
-              select(accountnumber, inst_nm, prod_name, survey_span) %>%
-              filter(prod_name %in% products_in_filter) %>%
-              unique()
+                filter(accountnumber %in% branchBX$accountnumber) %>%
+                left_join(branchBX, by = "accountnumber") %>%  ## append the info: institution name and branch deposits
+                group_by(prod_code, accountnumber) %>%
+                mutate(survey_span = table(prod_code)) %>%
+                ungroup() %>% group_by(inst_nm,prod_code) %>% top_n(1, survey_span)  %>% ## grouping by institution name and select the longest survey span
+                ungroup() %>%
+                select(accountnumber, inst_nm, prod_name, survey_span) %>%
+                filter(prod_name %in% products_in_filter) %>%
+                unique()
 
   ##   branchBXX = MSA_raw %>%
   ##             filter(accountnumber %in% branchBX$accountnumber) %>%
@@ -71,19 +70,23 @@ MSABranchLoop = function(j)
   ##             unique()
 
     branchB2 = branchBXX %>%
-               group_by(inst_nm) %>%
+               group_by(prod_name, inst_nm) %>%
                mutate(branchNBR = table(inst_nm)) %>%
                filter(branchNBR == 1) %>%
                mutate(branchType = "B2") %>%
+               ungroup() %>%
                select(-branchNBR)
 
     branchB3 = branchBXX %>%
-               anti_join(branchB2, by = "inst_nm") %>%
+               anti_join(branchB2, by = "accountnumber") %>%
                left_join(data_complement %>% select(-inst_nm), by = "accountnumber") %>%
-               group_by(inst_nm) %>%
+               group_by(prod_name, inst_nm) %>%
                top_n(1, branchdeposits) %>%
-               select(-branchdeposits) %>%
+               ungroup() %>%
+               select(-branchdeposits, -prod_name) %>%
                mutate(branchType = "B3")
+
+    branchB2 = branchB2 %>% select(-prod_name)
 
     ABSelect = rbind(tbl_df(branchA), tbl_df(branchB1), tbl_df(branchB2), tbl_df(branchB3))
 
@@ -92,5 +95,5 @@ MSABranchLoop = function(j)
                   na.omit()
 
     write_csv(select_data, paste0("../../RW_MasterHistoricalLoanData_042018/MSABranchSelect/",j))
-    return(j)
+    ## return(j)
 }
