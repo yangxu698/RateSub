@@ -95,5 +95,5 @@ CBSABranchLoop = function(j)
                   na.omit()
 
     write_csv(select_data, paste0("../../RW_MasterHistoricalLoanData_042018/CBSABranchSelect/",j))
-    ## return(j)
+    return(j)
 }

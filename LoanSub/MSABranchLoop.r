@@ -46,7 +46,7 @@ MSABranchLoop = function(j)
                           "Home E.L.O.C. up to 80% LTV - Tier 4",
                           "Personal Unsecured Loan - Tier 1",
                           "Personal Unsecured Loan - Tier 4")
-                          
+
     branchBXX = MSA_raw %>%
                 filter(accountnumber %in% branchBX$accountnumber) %>%
                 left_join(branchBX, by = "accountnumber") %>%  ## append the info: institution name and branch deposits
@@ -95,5 +95,5 @@ MSABranchLoop = function(j)
                   na.omit()
 
     write_csv(select_data, paste0("../../RW_MasterHistoricalLoanData_042018/MSABranchSelect/",j))
-    ## return(j)
+    return(j)
 }
