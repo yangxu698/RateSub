@@ -44,7 +44,7 @@ MSABranchLoop = function(j)
                 ungroup() %>% group_by(inst_nm,prod_code) %>% top_n(1, survey_span)  %>% ## grouping by institution name and select the longest survey span
                 ungroup() %>%
                 select(accountnumber, inst_nm, prod_name, survey_span) %>%
-                filter(prod_name %in% products_in_filter) %>%
+                ## filter(prod_name %in% products_in_filter) %>%
                 unique()
 
   ##   branchBXX = MSA_raw %>%
