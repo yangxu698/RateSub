@@ -124,7 +124,7 @@ CBSABranchLoop = function(j)
 
     ABSelect = rbind(tbl_df(branchA), tbl_df(branchB1))
     B2B3Select = rbind(tbl_df(branchB2), tbl_df(branchB3)) %>%
-                 left_join(MSA_raw, by = c("accountnumber",  "prod_name"))
+                 left_join(CBSA_raw, by = c("accountnumber",  "prod_name"))
 
     select_data = CBSA_raw %>%
                   left_join(ABSelect, by = "accountnumber") %>%
