@@ -118,7 +118,7 @@ MSABranchLoop = function(j)
                mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Home E.L.O.C. up to 80% LTV - Tier 4","B3_HomeELOC80%LTV_Tier4", .))) %>%
                mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Personal Unsecured Loan - Tier 1","B3_PersonalUnsecuredLoan_Tier1", .))) %>%
                mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Personal Unsecured Loan - Tier 4","B3_PersonalUnsecuredLoan_Tier4", .)))
-               
+
 
     ## branchB2 = branchB2 %>% select(-prod_name)
 
@@ -129,7 +129,7 @@ MSABranchLoop = function(j)
     select_data = MSA_raw %>%
                   left_join(ABSelect, by = "accountnumber") %>%
                   na.omit() %>%
-                  select(colnames(B1B2Select)) %>%
+                  select(colnames(B2B3Select)) %>%
                   rbind(B2B3Select)
 
     write_csv(select_data, paste0("../../RW_MasterHistoricalLoanData_042018/MSABranchSelect/",j))
