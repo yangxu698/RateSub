@@ -31,12 +31,13 @@ str(smarket_raw)
               mutate(branchType = ifelse(accountnumber %in% branchThrouAcquisition, "A1","A2"))
 
     branchB = branch %>%
-              anti_join(branchA, by = 'accountnumber')
+              anti_join(branchA, by = 'accountnumber') %>%
+              filter(!accountnumber %in% branchThrouAcquisition)
+
 
 
     ##   Extract institutions with possible multiple branches, with Jan.1999 data  ##
     branchB1 =  branchB  %>%  ## $accountnumber) %>%
-                filter(!accountnumber %in% branchThrouAcquisition) %>%
                 select(accountnumber, inst_nm, StateCounty) %>%
                 unique() %>%
                 group_by(StateCounty, inst_nm) %>%
@@ -46,8 +47,8 @@ str(smarket_raw)
                 select(-branchNBR)
 
     ##   Extract institutions with possible multiple branches, no Jan.1999 data  ##
-    branchBX = branchB %>% anti_join(branchB1, by="inst_nm") %>%
-               select(accountnumber, inst_nm) %>%
+    branchBX = branchB %>% anti_join(branchB1, by="accountnumber") %>%
+               select(accountnumber, inst_nm, StateCounty) %>%
                unique()
 
     products_in_filter = c("1 Year ARM @ 175K - Rate",
@@ -62,13 +63,14 @@ str(smarket_raw)
                           "Personal Unsecured Loan - Tier 4")
 
     branchBXX = smarket_raw %>%
+                select(-StateCounty) %>%
                 filter(accountnumber %in% branchBX$accountnumber) %>%
                 left_join(branchBX, by = "accountnumber") %>%  ## append the info: institution name and branch deposits
-                group_by(prod_code, accountnumber) %>%
+                group_by(StateCounty, prod_code, accountnumber) %>%
                 mutate(survey_span = table(prod_code)) %>%
-                ungroup() %>% group_by(inst_nm,prod_code) %>% top_n(1, survey_span)  %>% ## grouping by institution name and select the longest survey span
+                ungroup() %>% group_by(StateCounty,inst_nm,prod_code) %>% top_n(1, survey_span)  %>% ## grouping by institution name and select the longest survey span
                 ungroup() %>%
-                select(accountnumber, inst_nm, prod_name, survey_span) %>%
+                select(accountnumber, inst_nm, prod_name, survey_span, StateCounty) %>%
                 filter(prod_name %in% products_in_filter) %>%
                 unique()
 
@@ -84,7 +86,7 @@ str(smarket_raw)
   ##             unique()
 
     branchB2 = branchBXX %>%
-               group_by(prod_name, inst_nm) %>%
+               group_by(StateCounty, inst_nm, prod_name) %>%
                mutate(branchNBR = table(inst_nm)) %>%
                filter(branchNBR == 1) %>%
                mutate(branchType = "B2") %>%
@@ -97,15 +99,18 @@ str(smarket_raw)
                group_by(prod_name, inst_nm) %>%
                top_n(1, branchdeposits) %>%
                ungroup() %>%
-               select(-branchdeposits, -prod_name, - survey_span) %>%
+               select(-branchdeposits,  -survey_span) %>%
                mutate(branchType = "B3")
 
     branchB2 = branchB2 %>% select(-prod_name)
 
-    ABSelect = rbind(tbl_df(branchA), tbl_df(branchB1), tbl_df(branchB2), tbl_df(branchB3))
-
+    ABSelect = rbind(tbl_df(branchA), tbl_df(branchB1))
+    B1B2Select = rbind(tbl_df(branchB2), tbl_df(branchB3)) %>% 
+                 left_join(smarket_raw, by = c("accountnumber",  "prod_name", "StateCounty"))
     select_data = smarket_raw %>%
-                  left_join(ABSelect, by = "accountnumber") %>%
-                  na.omit()
+                  left_join(ABSelect, by = c("accountnumber", "StateCounty")) %>%
+                  na.omit() %>%
+                  select(colnames(B1B2Select)) %>%
+                  rbind(B1B2Select)                  
 
     write_csv(select_data, paste0("../../RW_MasterHistoricalLoanData_042018/smarketBranchSelect/",j))

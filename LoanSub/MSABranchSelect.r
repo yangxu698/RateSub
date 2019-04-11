@@ -14,7 +14,7 @@ branchThrouAcquisition = read_delim("../../RW_MasterHistoricalLoanData_042018/Lo
 library(foreach)
 library(doParallel)
 library(iterators)
-cores_number = 4
+cores_number = 24
 ## timestamp = tbl_df(c())
 registerDoParallel(cores_number)
 MSA_list = read_csv("MSA_list.csv") %>% pull(MSA)
