@@ -58,8 +58,9 @@ CBSABranchLoop = function(j)
     ##           unique()
 
     branchB2 = branchBXX %>%
-               group_by(prod_name, inst_nm) %>%
-               mutate(branchNBR = table(inst_nm)) %>%
+               group_by(inst_nm, prod_name) %>%
+               mutate(branchNBR = table(prod_name)) %>%
+               ungroup() %>%
                filter(branchNBR == 1) %>%
                mutate(branchType = "B2") %>%
                mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "1 Year ARM @ 175K - Amort","B2_1ARM_Amort", .))) %>%
