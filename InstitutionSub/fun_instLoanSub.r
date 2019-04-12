@@ -4,9 +4,9 @@ inst_loan_subset = function(j)
   start_time = Sys.time()
   inst_count = c()
 
-  for (i in 1:length(loan_file_list))
+  for (i in 1:length(file_list))
       {
-            branch.in.inst_nm = Deposit_InstitutionDetails %>% filter( inst_nm == j) %>% pull(accountnumber)
+            branch.in.inst_nm = Loan_InstitutionDetails %>% filter( inst_nm == j) %>% pull(accountnumber)
             ## deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
             summary(loan.raw)
             loan.raw = read_delim(paste0("../../RW_MasterHistoricalLoanData_042018/",loan_file_list[i]), delim = "|") %>%
