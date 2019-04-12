@@ -35,7 +35,7 @@ timestamp_deposit = foreach(j = itx,.combine = 'rbind') %dopar%
                     {
                       inst_loan_subset(j)
                     }
-colnames(timestamp) = c("inst_nm", "start_time", "end_time", file_list)
-timestamp = tbl_df(timestamp)
-write_csv(timestamp, paste0("../../InstSelect/", "timestamp_loan", as.character(Sys.time()),".csv"))
+colnames(timestamp_deposit) = c("inst_nm", "start_time", "end_time", file_list)
+timestamp_deposit= tbl_df(timestamp_deposit)
+write_csv(timestamp_deposit, paste0("../../InstSelect/", "timestamp_loan", as.character(Sys.time()),".csv"))
 stopImplicitCluster()

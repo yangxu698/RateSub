@@ -16,7 +16,7 @@ inst_deposit_subset = function(j)
 
       }
   timestamp_n = c(j,as.character(start_time), as.character(Sys.time()), MSA_count)
-  write_csv(temp, paste0("../../InstSelect/", j, "Deposit", ".csv"))
+  write_csv(temp, paste0("../../InstSelect/", j, "_Deposit", ".csv"))
   rm(temp)
   return(timestamp_n)
 }
