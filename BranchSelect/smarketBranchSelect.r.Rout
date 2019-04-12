@@ -68,8 +68,8 @@ cols(
   apy = col_double(),
   surveydate = col_date(format = "")
 )
-> branchThrouAcquisition1 = read_delim("../../DepositCertChgHist.txt", delim = "|") %>%
-+                           pull(acctnbr)
+> branchThrouAcquisition = read_delim("../../DepositCertChgHist.txt", delim = "|") %>%
++                           pull(acctnbr) %>% unique()
 Parsed with column specification:
 cols(
   acctnbr = col_character(),
@@ -99,17 +99,6 @@ Warning: 38 parsing failures.
 .... .............. .................. .......... ..............................
 See problems(...) for more details.
 
-> branchThrouAcquisition2 = read_delim("../../DepNameChgHis.txt", delim = "|") %>%
-+                           pull(acctnbr)
-Parsed with column specification:
-cols(
-  acctnbr = col_character(),
-  chgdt = col_date(format = ""),
-  chgtm = col_time(format = ""),
-  fromname = col_character(),
-  toname = col_character()
-)
-> branchThrouAcquisition = c(branchThrouAcquisition1,branchThrouAcquisition2) %>% unique()
 > library(foreach)
 > library(doParallel)
 Loading required package: iterators
@@ -128,7 +117,7 @@ cols(
 > itx = iter(smarket_list)
 > itx
 $state
-<environment: 0x1260930>
+<environment: 0x1147818>
 
 $length
 [1] 8
@@ -136,7 +125,7 @@ $length
 $checkFunc
 function (...) 
 TRUE
-<environment: 0x12654c0>
+<environment: 0x1147428>
 
 $recycle
 [1] FALSE
@@ -202,10 +191,10 @@ Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	2156999 obs
   ..   rate = col_double(),
   ..   surveydate = col_date(format = "")
   .. )
-Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	2390466 obs. of  4 variables:
- $ accountnumber: chr  "GA00300002" "GA00300002" "GA00300002" "GA00300002" ...
- $ productcode  : chr  "06MCD10K" "MM25K" "MM10K" "MM10K" ...
- $ rate         : num  5.5 2.75 2.75 2.75 5.5 2.75 5.5 2.75 2.75 2.75 ...
+Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	2359724 obs. of  4 variables:
+ $ accountnumber: chr  "IA00200007" "IA00200007" "IA00200007" "IA00200007" ...
+ $ productcode  : chr  "MM25K" "12MCD10K" "MM10K" "06MCD10K" ...
+ $ rate         : num  4.25 5 3.75 4.8 5 4.8 3.75 4.25 3.75 4.8 ...
  $ surveydate   : Date, format: "1997-12-29" "1997-12-29" ...
  - attr(*, "spec")=
   .. cols(
@@ -214,10 +203,10 @@ Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	2390466 obs
   ..   rate = col_double(),
   ..   surveydate = col_date(format = "")
   .. )
-Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	2359724 obs. of  4 variables:
- $ accountnumber: chr  "IA00200007" "IA00200007" "IA00200007" "IA00200007" ...
- $ productcode  : chr  "MM25K" "12MCD10K" "MM10K" "06MCD10K" ...
- $ rate         : num  4.25 5 3.75 4.8 5 4.8 3.75 4.25 3.75 4.8 ...
+Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	2390466 obs. of  4 variables:
+ $ accountnumber: chr  "GA00300002" "GA00300002" "GA00300002" "GA00300002" ...
+ $ productcode  : chr  "06MCD10K" "MM25K" "MM10K" "MM10K" ...
+ $ rate         : num  5.5 2.75 2.75 2.75 5.5 2.75 5.5 2.75 2.75 2.75 ...
  $ surveydate   : Date, format: "1997-12-29" "1997-12-29" ...
  - attr(*, "spec")=
   .. cols(
@@ -252,6 +241,20 @@ cols(
   rate = col_double(),
   surveydate = col_date(format = "")
 )
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
+Parsed with column specification:
+cols(
+  accountnumber = col_character(),
+  productcode = col_character(),
+  rate = col_double(),
+  surveydate = col_date(format = "")
+)
 Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	1591505 obs. of  4 variables:
  $ accountnumber: chr  "AL00200015" "AL00200015" "AL00200015" "AL00200015" ...
  $ productcode  : chr  "12MCD10K" "MM10K" "MM25K" "06MCD10K" ...
@@ -264,20 +267,6 @@ Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	1591505 obs
   ..   rate = col_double(),
   ..   surveydate = col_date(format = "")
   .. )
-Parsed with column specification:
-cols(
-  accountnumber = col_character(),
-  productcode = col_character(),
-  rate = col_double(),
-  surveydate = col_date(format = "")
-)
-Parsed with column specification:
-cols(
-  accountnumber = col_character(),
-  productcode = col_character(),
-  rate = col_double(),
-  surveydate = col_date(format = "")
-)
 Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	1675043 obs. of  4 variables:
  $ accountnumber: chr  "MD00100001" "MD00100001" "MD00100001" "MD00100001" ...
  $ productcode  : chr  "06MCD10K" "MM10K" "12MCD10K" "MM25K" ...
@@ -310,4 +299,4 @@ Classes ‘spec_tbl_df’, ‘tbl_df’, ‘tbl’ and 'data.frame':	1838799 obs
 > 
 > proc.time()
    user  system elapsed 
- 88.010   4.739  66.206 
+140.113  13.800  72.264 
