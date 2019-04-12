@@ -1,6 +1,6 @@
 CBSABranchLoop = function(j)
 {
-    CBSA_raw = read_csv(paste0("../../RW_MasterHistoricalLoanData_042018/CBSA/",j))
+    CBSA_raw = read.csv(paste0("../../RW_MasterHistoricalLoanData_042018/CBSA/",j), stringsAsFactors = FALSE)
     str(CBSA_raw)
     ##   Extract institutions with only one branch in this CBSA   ##
     branch =  CBSA_raw %>%

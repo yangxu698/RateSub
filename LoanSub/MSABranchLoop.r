@@ -1,6 +1,6 @@
 MSABranchLoop = function(j)
 {
-    MSA_raw = read_csv(paste0("../../RW_MasterHistoricalLoanData_042018/MSA/",j))
+    MSA_raw = read.csv(paste0("../../RW_MasterHistoricalLoanData_042018/MSA/",j), stringsAsFactors = FALSE)
     str(MSA_raw)
     ##   Extract institutions with only one branch in this MSA   ##
     branch =  MSA_raw %>%
