@@ -6,7 +6,6 @@ library(readr)
 Loan_InstitutionDetails = read_delim("../../RW_MasterHistoricalLoanData_042018/Loan_InstitutionDetails.txt", delim = "|") %>%
       select(accountnumber = acct_nbr, inst_nm, state, city, county, branchdeposits, state_fps, cnty_fps, msa, cbsa)
 inst_list = read_csv("BankNameList.csv") %>% pull(BankNamefromData)
-rates.array = c("1YrARM175K", "15YrFixMtg175K", "30YrFixMtg175K", "AUTONEW", "AUTOUSED2YR", "HELOC80LTV", "PersonalUnsecLoan")
 file_list = read_csv("loan_file_list.csv") %>%
               mutate(code = gsub("(^.+_)(\\w+)(_.+$)","\\2", file_list)) %>%
               filter(code %in% rates.array) %>%
@@ -35,7 +34,7 @@ timestamp_deposit = foreach(j = itx,.combine = 'rbind') %dopar%
                     {
                       inst_loan_subset(j)
                     }
-colnames(timestamp) = c("inst_nm", "start_time", "end_time", files.name.array)
+colnames(timestamp) = c("inst_nm", "start_time", "end_time", file_list)
 timestamp = tbl_df(timestamp)
 write_csv(timestamp, paste0("../../InstSelect/", "timestamp_loan", as.character(Sys.time()),".csv"))
 stopImplicitCluster()
