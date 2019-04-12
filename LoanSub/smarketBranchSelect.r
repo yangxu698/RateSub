@@ -12,13 +12,12 @@ branchThrouAcquisition = read_delim("../../RW_MasterHistoricalLoanData_042018/Lo
 ## branchThrouAcquisition = read_delim("../../../loan/LoanInstCertChgs.txt", delim = "|") %>%
 ##                           pull(acctnbr) %>% unique()
 
-smarket_raw = read_csv("../../RW_MasterHistoricalLoanData_042018/smarket/smarketInOne.csv")
+smarket_raw = read.csv("../../RW_MasterHistoricalLoanData_042018/smarket/smarketInOne.csv", stringsAsFactors = FALSE)
 str(smarket_raw)
 
     ##   Extract institutions with only one branch in this smarket   ##
     branch =  smarket_raw %>%
               left_join(data_complement, by = "accountnumber") %>%
-              ## select(accountnumber, prod_code, date, applicablemeasurement, inst_nm, branchdeposits) %>%
               select(accountnumber, inst_nm, StateCounty) %>%
               unique() %>%
               group_by(StateCounty, inst_nm) %>%
@@ -33,7 +32,6 @@ str(smarket_raw)
     branchB = branch %>%
               anti_join(branchA, by = 'accountnumber') %>%
               filter(!accountnumber %in% branchThrouAcquisition)
-
 
 
     ##   Extract institutions with possible multiple branches, with Jan.1999 data  ##
@@ -51,17 +49,6 @@ str(smarket_raw)
                select(accountnumber, inst_nm, StateCounty) %>%
                unique()
 
-    products_in_filter = c("1 Year ARM @ 175K - Rate",
-                          "15 Yr Fxd Mtg @ 175K - Rate",
-                          "30 Yr Fxd Mtg @ 175K - Rate",
-                          "Auto New - 36 Mo Term","Auto New - 60 Mo Term",
-                          "Auto Used 2 Yrs - % Financed",
-                          "Home E.L.O.C. up to 80% LTV - Annual Fee",
-                          "Home E.L.O.C. up to 80% LTV - Tier 1",
-                          "Home E.L.O.C. up to 80% LTV - Tier 4",
-                          "Personal Unsecured Loan - Tier 1",
-                          "Personal Unsecured Loan - Tier 4")
-
     branchBXX = smarket_raw %>%
                 select(-StateCounty) %>%
                 filter(accountnumber %in% branchBX$accountnumber) %>%
@@ -71,7 +58,7 @@ str(smarket_raw)
                 ungroup() %>% group_by(StateCounty,inst_nm,prod_code) %>% top_n(1, survey_span)  %>% ## grouping by institution name and select the longest survey span
                 ungroup() %>%
                 select(accountnumber, inst_nm, prod_name, survey_span, StateCounty) %>%
-                filter(prod_name %in% products_in_filter) %>%
+                ## filter(prod_name %in% products_in_filter) %>%
                 unique()
 
   ##   branchBXX = smarket_raw %>%
@@ -90,27 +77,69 @@ str(smarket_raw)
                mutate(branchNBR = table(inst_nm)) %>%
                filter(branchNBR == 1) %>%
                mutate(branchType = "B2") %>%
-               ungroup() %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "1 Year ARM @ 175K - Amort","B2_1ARM_Amort", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "1 Year ARM @ 175K - Caps","B2_1ARM_Caps", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "1 Year ARM @ 175K - Dwn Pmt","B2_1ARM_Dwn_Pmt", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "1 Year ARM @ 175K - Orig Fees","B2_1ARM_Orig_Fees", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "1 Year ARM @ 175K - Points","B2_1ARM_Points", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "1 Year ARM @ 175K - Rate","B2_1ARM_Rate", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "15 Yr Fxd Mtg @ 175K - Dwn Pmt","B2_15YrFxdMtg_DwnPmt", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "15 Yr Fxd Mtg @ 175K - Orig Fees","B2_15YrFxdMtg_OrigFees", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "15 Yr Fxd Mtg @ 175K - Points","B2_15YrFxdMtg_Points", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "15 Yr Fxd Mtg @ 175K - Rate","B2_15YrFxdMtg_Rate", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "30 Yr Fxd Mtg @ 175K - Dwn Pmt","B2_30YrFxdMtg_DwnPmt", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "30 Yr Fxd Mtg @ 175K - Orig Fees","B2_30YrFxdMtg_OrigFees", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "30 Yr Fxd Mtg @ 175K - Points","B2_30YrFxdMtg_Points", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "30 Yr Fxd Mtg @ 175K - Rate","B2_30YrFxdMtg_Rate", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Auto New - 36 Mo Term","B2_AutoNew_36MoTerm", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Auto New - 60 Mo Term","B2_AutoNew_60MoTerm", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Auto Used 2 Yrs - % Financed","B2_AutoUsed2Yr_%Financed", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Home E.L.O.C. up to 80% LTV - Annual Fee","B2_HomeELOC80%LTV_AnnualFee", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Home E.L.O.C. up to 80% LTV - Tier 1","B2_HomeELOC80%LTV_Tier1", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Home E.L.O.C. up to 80% LTV - Tier 4","B2_HomeELOC80%LTV_Tier4", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Personal Unsecured Loan - Tier 1","B2_PersonalUnsecuredLoan_Tier1", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Personal Unsecured Loan - Tier 4","B2_PersonalUnsecuredLoan_Tier4", .))) %>%               ungroup() %>%
                select(-branchNBR, -survey_span)
 
     branchB3 = branchBXX %>%
-               anti_join(branchB2, by = "accountnumber") %>%
+               anti_join(branchB2, by = c("StateCounty","prod_name","inst_nm")) %>%
                left_join(data_complement %>% select(-inst_nm), by = "accountnumber") %>%
                group_by(prod_name, inst_nm) %>%
                top_n(1, branchdeposits) %>%
                ungroup() %>%
                select(-branchdeposits,  -survey_span) %>%
-               mutate(branchType = "B3")
-
-    branchB2 = branchB2 %>% select(-prod_name)
+               mutate(branchType = "B3") %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "1 Year ARM @ 175K - Amort","B3_1ARM_Amort", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "1 Year ARM @ 175K - Caps","B3_1ARM_Caps", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "1 Year ARM @ 175K - Dwn Pmt","B3_1ARM_Dwn_Pmt", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "1 Year ARM @ 175K - Orig Fees","B3_1ARM_Orig_Fees", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "1 Year ARM @ 175K - Points","B3_1ARM_Points", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "1 Year ARM @ 175K - Rate","B3_1ARM_Rate", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "15 Yr Fxd Mtg @ 175K - Dwn Pmt","B3_15YrFxdMtg_DwnPmt", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "15 Yr Fxd Mtg @ 175K - Orig Fees","B3_15YrFxdMtg_OrigFees", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "15 Yr Fxd Mtg @ 175K - Points","B3_15YrFxdMtg_Points", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "15 Yr Fxd Mtg @ 175K - Rate","B3_15YrFxdMtg_Rate", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "30 Yr Fxd Mtg @ 175K - Dwn Pmt","B3_30YrFxdMtg_DwnPmt", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "30 Yr Fxd Mtg @ 175K - Orig Fees","B3_30YrFxdMtg_OrigFees", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "30 Yr Fxd Mtg @ 175K - Points","B3_30YrFxdMtg_Points", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "30 Yr Fxd Mtg @ 175K - Rate","B3_30YrFxdMtg_Rate", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Auto New - 36 Mo Term","B3_AutoNew_36MoTerm", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Auto New - 60 Mo Term","B3_AutoNew_60MoTerm", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Auto Used 2 Yrs - % Financed","B3_AutoUsed2Yr_%Financed", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Home E.L.O.C. up to 80% LTV - Annual Fee","B3_HomeELOC80%LTV_AnnualFee", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Home E.L.O.C. up to 80% LTV - Tier 1","B3_HomeELOC80%LTV_Tier1", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Home E.L.O.C. up to 80% LTV - Tier 4","B3_HomeELOC80%LTV_Tier4", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Personal Unsecured Loan - Tier 1","B3_PersonalUnsecuredLoan_Tier1", .))) %>%
+               mutate_at(vars(contains("branchType")), funs(ifelse(prod_name == "Personal Unsecured Loan - Tier 4","B3_PersonalUnsecuredLoan_Tier4", .)))
 
     ABSelect = rbind(tbl_df(branchA), tbl_df(branchB1))
-    B1B2Select = rbind(tbl_df(branchB2), tbl_df(branchB3)) %>% 
+    B2B3Select = rbind(tbl_df(branchB2), tbl_df(branchB3)) %>%
                  left_join(smarket_raw, by = c("accountnumber",  "prod_name", "StateCounty"))
     select_data = smarket_raw %>%
                   left_join(ABSelect, by = c("accountnumber", "StateCounty")) %>%
                   na.omit() %>%
-                  select(colnames(B1B2Select)) %>%
-                  rbind(B1B2Select)                  
+                  select(colnames(B2B3Select)) %>%
+                  rbind(B2B3Select)
 
+    write_csv(select_data, "../../../smarketBranchSelectInOne.csv")
     write_csv(select_data, paste0("../../RW_MasterHistoricalLoanData_042018/smarketBranchSelect/",j))
