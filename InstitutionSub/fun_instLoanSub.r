@@ -17,7 +17,7 @@ inst_loan_subset = function(j)
             inst_count = c(inst_count, nrow(temp)-nrow_temp)
 
       }
-  timestamp_n = c(j,as.character(start_time), as.character(Sys.time()), MSA_count)
+  timestamp_n = c(j,as.character(start_time), as.character(Sys.time()), inst_count)
   write_csv(temp, paste0("../../InstSelect/", j, "Loan", ".csv"))
   rm(temp)
   return(timestamp_n)
