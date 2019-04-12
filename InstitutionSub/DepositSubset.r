@@ -3,7 +3,7 @@ rm(list=ls())
 
 library(dplyr)
 library(readr)
-Deposit_InstitutionDetails = read_delim("../../Deposit_InstitutionDetails.txt", delim = "|")
+Deposit_InstitutionDetails = read_delim("../../RW_MasterHistoricalDepositFiles_042018/Deposit_InstitutionDetails.txt", delim = "|")
 
 rates.array = c("06MCD10K", "12MCD10K", "60MCD10K", "INTCK0K", "INTCK2.5K", "FIXIRA0K", "VARIRA0K", "SAVE2.5K", "MM10K", "MM25K")
 
@@ -51,7 +51,7 @@ inst_list = read_csv("BankNameList.csv") %>% pull(BankNamefromData)
 library(foreach)
 library(doParallel)
 library(iterators)
-source("")
+source("fun_instDepoSub.r")
 cores_number = 4
 registerDoParallel(cores_number)
 itx = iter(inst_list)
