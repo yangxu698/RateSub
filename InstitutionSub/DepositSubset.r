@@ -60,7 +60,7 @@ timestamp_deposit = foreach(j = itx,.combine = 'rbind') %dopar%
                     {
                       inst_deposit_subset(j)
                     }
-colnames(timestamp) = c("MSA", "start_time", "end_time", files.name.array)
+colnames(timestamp) = c("INST_NM", "start_time", "end_time", files.name.array)
 timestamp = tbl_df(timestamp)
 write_csv(timestamp, paste0("../../InstSelect/", "timestamp_deposit", as.character(Sys.time()),".csv"))
 stopImplicitCluster()

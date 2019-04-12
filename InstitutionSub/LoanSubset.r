@@ -1,39 +1,17 @@
 unlink(".RData")
 rm(list=ls())
 
-## setwd("~/RateWatch/UnzippedData")
 library(dplyr)
 library(readr)
-## setwd("./LoanSub")
-## setwd("/home/yang/RateWatch/UnzippedData/deposit/RateSub/LoanSub")
-Loan_InstitutionDetails = read_delim("../../../RW_MasterHistoricalLoanData_042018/Loan_InstitutionDetails.txt", delim = "|") %>%
-## Loan_InstitutionDetails = read_delim("../../../loan/Loan_InstitutionDetails.txt", delim = "|") %>%
+Loan_InstitutionDetails = read_delim("../../RW_MasterHistoricalLoanData_042018/Loan_InstitutionDetails.txt", delim = "|") %>%
       select(accountnumber = acct_nbr, inst_nm, state, city, county, branchdeposits, state_fps, cnty_fps, msa, cbsa)
-MSA = Loan_InstitutionDetails %>% pull(msa) %>% unique() %>% na.omit() %>% sort()
-CBSA = Loan_InstitutionDetails %>% pull(cbsa) %>% unique() %>% na.omit() %>% sort()
-str(MSA)
-str(CBSA)
-str(Loan_InstitutionDetails)
-## DepNameChgHis = DepNameChgHis %>% mutate_if(is.character, as.factor)
-## Deposit_acct_join  = Deposit_acct_join %>% mutate_if(is.character, as.factor)
-## DepositCertChgHist = DepositCertChgHist %>% mutate_if(is.character, as.factor)
-## Deposit_InstitutionDetails = Deposit_InstitutionDetails %>% mutate_if(is.character, as.factor)
-
-## summary(DepNameChgHis)
-## summary(DepositCertChgHist)
-## summary(Deposit_InstitutionDetails)
-
+inst_list = read_csv("BankNameList.csv") %>% pull(BankNamefromData)
 rates.array = c("1YrARM175K", "15YrFixMtg175K", "30YrFixMtg175K", "AUTONEW", "AUTOUSED2YR", "HELOC80LTV", "PersonalUnsecLoan")
-
-
 file_list = read_csv("loan_file_list.csv") %>%
               mutate(code = gsub("(^.+_)(\\w+)(_.+$)","\\2", file_list)) %>%
               filter(code %in% rates.array) %>%
               pull(file_list) %>%
               sort()
-
-file_list
-
 productfilter =  c("1 Year ARM @ 175K - Amort","1 Year ARM @ 175K - Caps","1 Year ARM @ 175K - Dwn Pmt",
                       "1 Year ARM @ 175K - Orig Fees","1 Year ARM @ 175K - Points", "1 Year ARM @ 175K - Rate",
                       "15 Yr Fxd Mtg @ 175K - Dwn Pmt","15 Yr Fxd Mtg @ 175K - Orig Fees",
@@ -45,22 +23,19 @@ productfilter =  c("1 Year ARM @ 175K - Amort","1 Year ARM @ 175K - Caps","1 Yea
                       "Home E.L.O.C. up to 80% LTV - Annual Fee","Home E.L.O.C. up to 80% LTV - Tier 1",
                       "Home E.L.O.C. up to 80% LTV - Tier 4",
                       "Personal Unsecured Loan - Tier 1", "Personal Unsecured Loan - Tier 4")
-
 library(foreach)
 library(doParallel)
 library(iterators)
-source("MSAsubset.r")
+source("fun_instLoanSub.r")
 cores_number = 4
-## timestamp = tbl_df(c())
 registerDoParallel(cores_number)
-itx = iter(MSA)
+itx = iter(inst_list)
 itx
-timestamp = foreach(j = itx,.combine = 'rbind') %dopar%
-## for (j in 1:length(MSA))
-              {
-                MSA_subset(j)
-              }
-colnames(timestamp) = c("MSA", "start_time", "end_time", file_list)
+timestamp_deposit = foreach(j = itx,.combine = 'rbind') %dopar%
+                    {
+                      inst_loan_subset(j)
+                    }
+colnames(timestamp) = c("inst_nm", "start_time", "end_time", files.name.array)
 timestamp = tbl_df(timestamp)
-write_csv(timestamp, paste0("../../../RW_MasterHistoricalLoanData_042018/MSA/", "timestamp", as.character(Sys.time()),".csv"))
+write_csv(timestamp, paste0("../../InstSelect/", "timestamp_loan", as.character(Sys.time()),".csv"))
 stopImplicitCluster()
