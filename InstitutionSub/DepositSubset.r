@@ -52,7 +52,7 @@ library(foreach)
 library(doParallel)
 library(iterators)
 source("fun_instDepoSub.r")
-cores_number = 4
+cores_number = 24
 registerDoParallel(cores_number)
 itx = iter(inst_list)
 itx
