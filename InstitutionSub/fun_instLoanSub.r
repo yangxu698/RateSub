@@ -6,7 +6,7 @@ inst_loan_subset = function(j)
 
   for (i in 1:length(file_list))
       {
-            branch.in.inst_nm = Loan_InstitutionDetails %>% filter( inst_nm == j) %>% pull(accountnumber)
+            branch.in.inst_nm = Loan_InstitutionDetails %>% filter( cert_nbr == j) %>% pull(accountnumber)
             ## deposit.raw = deposit.raw %>% mutate_if(is.character, as.factor)
             loan.raw = read_delim(paste0("../../RW_MasterHistoricalLoanData_042018/",file_list[i]), delim = "|") %>%
                         filter(prod_name %in% productfilter) %>%

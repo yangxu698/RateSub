@@ -1,27 +1,27 @@
-BankNamefromEmail,BankNamefromData
-JP Morgan Chase,"JPMorgan Chase Bank, National Association"
-Bank of America,"Bank of America, National Association"
-Wells Fargo,"Wells Fargo Bank, National Association"
-Citi,"Citibank, National Association"
-US Bank,US Bank National Association
-PNC,"PNC Bank, National Association"
-TD North,"TD Bank, National Association"
-Capital One,"Capital One, National Association"
-BB&T,Branch Banking & Trust Company
-SunTrust,SunTrust Bank
-Fifth Third,Fifth Third Bank
-Keybank,KeyBank National Association
-Citizens,"Citizens Bank, National Association"
-Regions,Regions Bank
-Manufacturers,Manufacturers & Traders Trust Company
-BMO Harris,BMO Harris Bank National Association
-Huntington,Huntington National Bank
-Bank of the West,Bank of the West
-BVA Compas,BBVA Compass
-Santandor,"Santander Bank, National Association"
-HSBC,"HSBC Bank USA, National Association"
-Northern Trust,Northern Bank & Trust Company
-MUFG,"MUFG Union Bank, National Association"
-First Republic,First Republic Bank
-Comerica,Comerica Bank
-Zion,Zions First National Bank
+BankNamefromEmail,BankNamefromData,id_location
+JP Morgan Chase,"JPMorgan Chase Bank, National Association",6
+Bank of America,"Bank of America, National Association",10
+Wells Fargo,"Wells Fargo Bank, National Association",1
+Citi,"Citibank, National Association",46
+US Bank,US Bank National Association,14
+PNC,"PNC Bank, National Association",19
+TD North,"TD Bank, National Association",32
+Capital One,"Capital One, National Association",48
+BB&T,Branch Banking & Trust Company,20
+SunTrust,SunTrust Bank,30
+Fifth Third,Fifth Third Bank,40
+Keybank,KeyBank National Association,37
+Citizens,"Citizens Bank, National Association",54
+Regions,Regions Bank,26
+Manufacturers,Manufacturers & Traders Trust Company,44
+BMO Harris,BMO Harris Bank National Association,73
+Huntington,Huntington National Bank,41
+Bank of the West,Bank of the West,71
+BVA Compas,BBVA Compass,68
+Santandor,"Santander Bank, National Association",57
+HSBC,"HSBC Bank USA, National Association",170
+Northern Trust,Northern Bank & Trust Company,1979
+MUFG,"MUFG Union Bank, National Association",100
+First Republic,First Republic Bank,471
+Comerica,Comerica Bank,77
+Zion,Zions First National Bank,89

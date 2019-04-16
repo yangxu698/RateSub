@@ -46,7 +46,7 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 
 files.name.array = sort(files.name.array)
 ## setwd("./InstitutionSub")
-inst_list = read_csv("BankNameList.csv") %>% pull(BankNamefromData)
+inst_list = read_csv("InstitutionFilter.csv") %>% pull(CERT_NBR)
 
 library(foreach)
 library(doParallel)
