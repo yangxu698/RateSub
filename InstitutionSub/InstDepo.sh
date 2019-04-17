@@ -1,7 +1,7 @@
 #!/bin/csh
 #$ -M yxu6@nd.edu
 #$ -m abe
-#$ -pe long 24
+#$ -pe smp 24
 #$ -q long ##*@@emichaellab
 #$ -N DepositInst
 
