@@ -45,10 +45,10 @@ files.name.array = c("depositRateData_2000_09.txt","depositRateData_2003_09.txt"
 "depositRateData_2000_08.txt","depositRateData_2003_08.txt","depositRateData_2006_08.txt","depositRateData_2009_08.txt","depositRateData_2012_08.txt","depositRateData_2015_08.txt")
 
 files.name.array = sort(files.name.array)
-## append two institution that has less than 250 branches but still to client's interest 
+## append two institution that has less than 250 branches but still to client's interest
 ## 18266 Northern Bank & Trust Company
 ## 59017 First Republic Bank
-inst_list = read_csv("InstitutionFilter.csv") %>%  filter(BranchNBR >= 250) %>% pull(CERT_NBR) %>% c(59017,18266) %>% unique()
+inst_list = read_csv("InstitutionFilter.csv") %>% filter(BranchNBR >= 250) %>% pull(CERT_NBR) %>% c(59017,18266) %>% unique()
 
 
 library(foreach)
@@ -63,7 +63,7 @@ timestamp_deposit = foreach(j = itx,.combine = 'rbind') %dopar%
                     {
                       inst_deposit_subset(j)
                     }
-colnames(timestamp) = c("INST_NM", "start_time", "end_time", files.name.array)
-timestamp = tbl_df(timestamp)
-write_csv(timestamp, paste0("../../InstSelect/", "timestamp_deposit", as.character(Sys.time()),".csv"))
+colnames(timestamp_deposit) = c("INST_NM", "start_time", "end_time", files.name.array)
+timestamp = tbl_df(timestamp_deposit)
+write_csv(timestamp_deposit, paste0("../../InstSelect/", "timestamp_deposit", as.character(Sys.time()),".csv"))
 stopImplicitCluster()
